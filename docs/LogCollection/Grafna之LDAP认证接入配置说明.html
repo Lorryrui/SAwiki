@@ -46,7 +46,8 @@
 <li>
 <p>在Grafna中配置接入LDAP，如认证不通过，启用debug模式进行调试</p>
 <p>/etc/grafana/grafana.ini</p>
-<p><code>[log]  
+<p><code>python
+  [log]  
   filters = ldap:debug</code></p>
 </li>
 <li>
@@ -59,16 +60,14 @@
 <ol>
 <li>
 <p>Grafna启用LDAP认证（默认/etc/grafana/grafana.ini）  </p>
-<p><code>[auth.ldap]  
-  enabled = true  
-  config_file = /etc/grafana/ldap.toml  
+<p><code>config_file = /etc/grafana/ldap.toml  
   allow_sign_up = true</code></p>
 </li>
 <li>
 <p>配置需要接入的LDAP服务端信息（默认/etc/grafana/ldap.toml）  </p>
 </li>
 </ol>
-<p><code>[[servers]]  
+<p><code>python 
    host = "192.168.12.123"   # LDAP服务器IP 
    port = 389  # 默认端口，未开启SSL  
    bind_dn = "user@mygrafna.com.cn"  # LDAP管理用户名以及相关域信息  
@@ -79,39 +78,39 @@
 <li>重启Grafna程序，使用LDAP账号即可登录</li>
 </ol>
 <h2 id="_5">五 配置参考</h2>
-<div class="hlcode"><pre><span class="k">[[servers]]</span>
-<span class="na">host</span> <span class="o">=</span> <span class="s">&quot;192.168.12.123&quot;</span>
-<span class="na">port</span> <span class="o">=</span> <span class="s">389</span>
-<span class="na">use_ssl</span> <span class="o">=</span> <span class="s">false</span>
-<span class="na">start_tls</span> <span class="o">=</span> <span class="s">false</span>
-<span class="na">ssl_skip_verify</span> <span class="o">=</span> <span class="s">true</span>
-<span class="na">bind_dn</span> <span class="o">=</span> <span class="s">&quot;readonly@mygrafna.com.cn&quot;</span>
-<span class="na">bind_password</span> <span class="o">=</span> <span class="s">&#39;password&#39;</span>
-<span class="na">search_filter</span> <span class="o">=</span> <span class="s">&quot;(sAMAccountName=%s)&quot;</span>
-<span class="na">search_base_dns</span> <span class="o">=</span> <span class="s">[&quot;DC=mygrafna,DC=com,DC=cn&quot;]</span>
-<span class="k">[servers.attributes]</span>
-<span class="na">name</span> <span class="o">=</span> <span class="s">&quot;sn&quot;</span>
-<span class="na">surname</span> <span class="o">=</span> <span class="s">&quot;givenName&quot;</span>
-<span class="na">username</span> <span class="o">=</span> <span class="s">&quot;sAMAccountName&quot;</span>
-<span class="na">member_of</span> <span class="o">=</span> <span class="s">&quot;memberOf&quot;</span>
-<span class="na">email</span> <span class="o">=</span>  <span class="s">&quot;mail&quot;</span>
-<span class="k">[[servers.group_mappings]]</span>
-<span class="na">group_dn</span> <span class="o">=</span> <span class="s">&quot;DC=mygrafna,DC=com,DC=cn&quot;</span>
-<span class="na">org_role</span> <span class="o">=</span> <span class="s">&quot;Admin&quot;</span>
-<span class="na">org_id</span> <span class="o">=</span> <span class="s">3</span>
-<span class="k">[[servers.group_mappings]]</span>
-<span class="na">group_dn</span> <span class="o">=</span> <span class="s">&quot;DC=mygrafna,DC=com,DC=cn&quot;</span>
-<span class="na">org_role</span> <span class="o">=</span> <span class="s">&quot;Editor&quot;</span>
-<span class="k">[[servers.group_mappings]]</span>
-<span class="na">group_dn</span> <span class="o">=</span> <span class="s">&quot;*&quot;</span>
-<span class="na">org_role</span> <span class="o">=</span> <span class="s">&quot;Viewer&quot;</span>
+<div class="hlcode"><pre><span class="p">[[</span><span class="n">servers</span><span class="p">]]</span>
+<span class="n">host</span> <span class="o">=</span> <span class="s">&quot;192.168.12.123&quot;</span>
+<span class="n">port</span> <span class="o">=</span> <span class="mi">389</span>
+<span class="n">use_ssl</span> <span class="o">=</span> <span class="n">false</span>
+<span class="n">start_tls</span> <span class="o">=</span> <span class="n">false</span>
+<span class="n">ssl_skip_verify</span> <span class="o">=</span> <span class="n">true</span>
+<span class="n">bind_dn</span> <span class="o">=</span> <span class="s">&quot;readonly@mygrafna.com.cn&quot;</span>
+<span class="n">bind_password</span> <span class="o">=</span> <span class="s">&#39;password&#39;</span>
+<span class="n">search_filter</span> <span class="o">=</span> <span class="s">&quot;(sAMAccountName=</span><span class="si">%s</span><span class="s">)&quot;</span>
+<span class="n">search_base_dns</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;DC=mygrafna,DC=com,DC=cn&quot;</span><span class="p">]</span>
+<span class="p">[</span><span class="n">servers</span><span class="o">.</span><span class="n">attributes</span><span class="p">]</span>
+<span class="n">name</span> <span class="o">=</span> <span class="s">&quot;sn&quot;</span>
+<span class="n">surname</span> <span class="o">=</span> <span class="s">&quot;givenName&quot;</span>
+<span class="n">username</span> <span class="o">=</span> <span class="s">&quot;sAMAccountName&quot;</span>
+<span class="n">member_of</span> <span class="o">=</span> <span class="s">&quot;memberOf&quot;</span>
+<span class="n">email</span> <span class="o">=</span>  <span class="s">&quot;mail&quot;</span>
+<span class="p">[[</span><span class="n">servers</span><span class="o">.</span><span class="n">group_mappings</span><span class="p">]]</span>
+<span class="n">group_dn</span> <span class="o">=</span> <span class="s">&quot;DC=mygrafna,DC=com,DC=cn&quot;</span>
+<span class="n">org_role</span> <span class="o">=</span> <span class="s">&quot;Admin&quot;</span>
+<span class="n">org_id</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="p">[[</span><span class="n">servers</span><span class="o">.</span><span class="n">group_mappings</span><span class="p">]]</span>
+<span class="n">group_dn</span> <span class="o">=</span> <span class="s">&quot;DC=mygrafna,DC=com,DC=cn&quot;</span>
+<span class="n">org_role</span> <span class="o">=</span> <span class="s">&quot;Editor&quot;</span>
+<span class="p">[[</span><span class="n">servers</span><span class="o">.</span><span class="n">group_mappings</span><span class="p">]]</span>
+<span class="n">group_dn</span> <span class="o">=</span> <span class="s">&quot;*&quot;</span>
+<span class="n">org_role</span> <span class="o">=</span> <span class="s">&quot;Viewer&quot;</span>
 </pre></div>
     </div>
     <div id="footer">
       <span>
         <p>Copyright © 2019 Lorryrui.
         Powered by <a href="http://simiki.org/" target="_blank">Simiki</a>.</p>
-        <p>Site Generated 2019-03-03 15:34:05</p>
+        <p>Site Generated 2019-03-03 15:42:21</p>
       </span>
     </div>
 
