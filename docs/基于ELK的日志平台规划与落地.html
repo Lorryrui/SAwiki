@@ -1,0 +1,66 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <link rel="Stylesheet" type="text/css" href="/static/css/style.css">
+    <link rel="Stylesheet" type="text/css" href="/static/css/tango.css">
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="alternate" type="application/atom+xml" href="atom.xml" title="Atom feed">
+    <title>ELK - </title>
+    <meta name="keywords" content="SA"/>
+    <meta name="description" content=""/>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  </head>
+
+  <body>
+    <div id="container">
+      
+<div id="header">
+  <div class="post-nav"><a href="/">Home</a>&nbsp;&#187;&nbsp;<a href="/#intro">intro</a>&nbsp;&#187;&nbsp;ELK
+    <span class="updated">Page Updated&nbsp;
+      2019-03-02 11:00
+    </span></div>
+</div>
+<div class="clearfix"></div>
+
+<div class="page_title">ELK</div>
+
+  <h1 id="elk">基于ELK的日志平台规划与落地</h1>
+<h2 id="_1">一 简介</h2>
+<h2 id="elasticsearch">二 Elasticsearch集群搭建</h2>
+<p>​    2.1 准备</p>
+<p>​        Elasticsearch集群节点数量保证是奇数个，这里以3个ES节点为例。服务器初始环境的配置包括：</p>
+<p>​            JDK版本： 1.8</p>
+<p>​            操作系统文件打开数(/etc/security/limits.conf)：</p>
+<p>​           echo "<em> soft nofile 65535"  &gt;&gt; /etc/security/limits.conf<br />
+​       echo "</em> hard nofile 65535"  &gt;&gt; /etc/security/limits.conf<br />
+​       fs.file-max = 6553560 (/etc/sysctl.conf)  </p>
+<p>​     2.2 集群搭建（Elasticsearch 6.6.1）</p>
+<p>​            2.2.1 安装包下载</p>
+<p>​       <a href="https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.6.1.tar.gz">https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.6.1.tar.gz</a></p>
+<p>​       程序启动只能以非root账号，这里使用elastic</p>
+<p>​       2.2.2 集群配置</p>
+<p>​    </p>
+<h2 id="elastic-stack-ldap">三 Elastic Stack 接入LDAP用户认证</h2>
+<ol>
+<li>官方文档参考</li>
+</ol>
+<p>​    <a href="https://www.elastic.co/guide/en/elastic-stack-overview/current/ldap-realm.html">https://www.elastic.co/guide/en/elastic-stack-overview/current/ldap-realm.html</a></p>
+<p>​    <a href="https://www.elastic.co/guide/en/elastic-stack-overview/current/mapping-roles.html">https://www.elastic.co/guide/en/elastic-stack-overview/current/mapping-roles.html</a></p>
+<ol>
+<li>配置说明</li>
+</ol>
+<p>使用X-pack插件，该插件收费，需要license。弃用。</p>
+    </div>
+    <div id="footer">
+      <span>
+        <p>Copyright © 2019 Rayzh.
+        Powered by <a href="http://simiki.org/" target="_blank">Simiki</a>.</p>
+        <p>Site Generated 2019-03-03 12:37:07</p>
+      </span>
+    </div>
+
+    
+    
+  </body>
+</html>
