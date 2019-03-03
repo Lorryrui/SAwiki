@@ -8,7 +8,7 @@
     <link rel="alternate" type="application/atom+xml" href="atom.xml" title="Atom feed">
     <title>Grafna LDAP - SA Reference</title>
     <meta name="keywords" content="SA"/>
-    <meta name="description" content=""/>
+    <meta name="description" content="SAwiki is a simple static site for SA Engineer."/>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   </head>
 
@@ -16,7 +16,7 @@
     <div id="container">
       
 <div id="header">
-  <div class="post-nav"><a href="/SAwiki/">Home</a>&nbsp;&#187;&nbsp;<a href="/SAwiki/#Index">Index</a>&nbsp;&#187;&nbsp;Grafna LDAP
+  <div class="post-nav"><a href="/SAwiki/">Home</a>&nbsp;&#187;&nbsp;<a href="/SAwiki/#ELK">ELK</a>&nbsp;&#187;&nbsp;Grafna LDAP
     <span class="updated">Page Updated&nbsp;
       2019-03-01 10:00
     </span></div>
@@ -46,7 +46,7 @@
 <li>
 <p>在Grafna中配置接入LDAP，如认证不通过，启用debug模式进行调试</p>
 <p>/etc/grafana/grafana.ini</p>
-<p><code>[log]
+<p><code>[log]  
   filters = ldap:debug</code></p>
 </li>
 <li>
@@ -59,21 +59,21 @@
 <ol>
 <li>
 <p>Grafna启用LDAP认证（默认/etc/grafana/grafana.ini）</p>
-<p><code>[auth.ldap]
-  enabled = true
-  config_file = /etc/grafana/ldap.toml
+<p><code>[auth.ldap]  
+  enabled = true  
+  config_file = /etc/grafana/ldap.toml  
   allow_sign_up = true</code></p>
 </li>
 <li>
 <p>配置需要接入的LDAP服务端信息（默认/etc/grafana/ldap.toml）</p>
 </li>
 </ol>
-<p><code>[[servers]]
-   host = "192.168.12.123"   # LDAP服务器IP
-   port = 389  # 默认端口，未开启SSL
-   bind_dn = "user@mygrafna.com.cn"  # LDAP管理用户名以及相关域信息
-   bind_password = 'password' #LDAP管理用户的密码
-   search_filter = "(sAMAccountName=%s)" # LDAP中存储用户的字段名
+<p><code>[[servers]]  
+   host = "192.168.12.123"   # LDAP服务器IP 
+   port = 389  # 默认端口，未开启SSL  
+   bind_dn = "user@mygrafna.com.cn"  # LDAP管理用户名以及相关域信息  
+   bind_password = 'password' #LDAP管理用户的密码  
+   search_filter = "(sAMAccountName=%s)" # LDAP中存储用户的字段名  
    search_base_dns = ["DC=mygrafna,DC=com,DC=cn"]</code></p>
 <ol>
 <li>重启Grafna程序，使用LDAP账号即可登录</li>
@@ -111,7 +111,7 @@
       <span>
         <p>Copyright © 2019 Lorryrui.
         Powered by <a href="http://simiki.org/" target="_blank">Simiki</a>.</p>
-        <p>Site Generated 2019-03-03 14:50:54</p>
+        <p>Site Generated 2019-03-03 15:14:02</p>
       </span>
     </div>
 
