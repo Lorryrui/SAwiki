@@ -30,11 +30,11 @@
 <p>​    LDAP是轻量目录访问协议，英文全称是Lightweight Directory Access Protocol。使用LDAP作为Grafna的认证方式，管理员不需要关心登录账号密码的分配，只需要管理相应的用户组和权限即可。</p>
 <h2 id="_2">二 原理说明</h2>
 <p>​    LDAP管理员为Grafna接入分配一个只读账号(user/password)，给定LDAP接入的域信息，如OU=mygrafna,DC=mygrafna,DC=com,DC=cn。windows下使用ldapadmin客户端连接：</p>
-<p><img alt="" src="attach\ldapadmin.jpg" /></p>
+<p><img alt="" src="..\attach\ldapadmin.jpg" /></p>
 <p>查看任意一个用户信息，如</p>
 <p><u>cn: 张三   sn: 张  givenName: 三  name: 张三 sAMAccountName: 10000</u> ... 等相关信息，Grafna接入LDAP之后，会定时同步一份LDAP里面用户名、密码到自身的认证服务里。在配置Grafna时，登录使用的LDAP用户名字段是sAMAccountName，用户信息里姓、名可以配置sn、cn（英文中姓、名排序和中文是反的，可以配置成自己习惯的即可）</p>
 <p>当前使用的域在ldapadmin客户端中也可以查看</p>
-<p><img alt="" src="attach\ldap.png" /></p>
+<p><img alt="" src="..\attach\ldap.png" /></p>
 <h2 id="_3">三 接入流程</h2>
 <ol>
 <li>
@@ -111,7 +111,7 @@
       <span>
         <p>Copyright © 2019 Lorryrui.
         Powered by <a href="http://simiki.org/" target="_blank">Simiki</a>.</p>
-        <p>Site Generated 2019-03-03 15:27:12</p>
+        <p>Site Generated 2019-03-03 15:34:05</p>
       </span>
     </div>
 
