@@ -1,0 +1,211 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <link rel="Stylesheet" type="text/css" href="/SAwiki/static/css/style.css">
+    <link rel="Stylesheet" type="text/css" href="/SAwiki/static/css/tango.css">
+    <link rel="shortcut icon" href="/SAwiki/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/SAwiki/favicon.ico" type="image/x-icon">
+    <link rel="alternate" type="application/atom+xml" href="atom.xml" title="Atom feed">
+    <title>Linux tools - SA Reference</title>
+    <meta name="keywords" content="SA"/>
+    <meta name="description" content="SAwiki is a simple static site for SA Engineer."/>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  </head>
+
+  <body>
+    <div id="container">
+      
+<div id="header">
+  <div class="post-nav"><a href="/SAwiki/">Home</a>&nbsp;&#187;&nbsp;<a href="/SAwiki/#LinuxTools">LinuxTools</a>&nbsp;&#187;&nbsp;Linux tools
+    <span class="updated">Page Updated&nbsp;
+      2019-03-06 21:01
+    </span></div>
+</div>
+<div class="clearfix"></div>
+
+<div class="page_title">Linux tools</div>
+
+  <h1 id="linux">Linux常用网络+压测+监控等工具</h1>
+<h2 id="_1">一、 简介</h2>
+<p>​    Linux下有很多用于问题排查、性能调优的工具，涉及到网络、软硬件等方方面面。显然一篇文章是无法详尽工具类型和每个参数的，这里记录下平时较为常用的工具，后续如有新涉及再另做补充。</p>
+<h2 id="_2">二、 网络相关</h2>
+<blockquote>
+<p><strong>·  tcpdump</strong>  </p>
+</blockquote>
+<p>​    非HTTP协议下的抓包工具，主要用于分析如TCP/UDP协议的网络分析。Windows下的抓包工具wireshark和tcpdump语法一样，tcpdump主要用于Linux服务器上。</p>
+<p>​    -- 基本语法</p>
+<p>​     // 过滤主机</p>
+<div class="hlcode"><pre><span class="n">tcpdump</span> <span class="o">-</span><span class="n">i</span> <span class="n">eth1</span> <span class="n">host</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span>  
+<span class="n">tcpdump</span> <span class="o">-</span><span class="n">i</span> <span class="n">eth1</span> <span class="n">src</span> <span class="n">host</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span>  
+<span class="n">tcpdump</span> <span class="o">-</span><span class="n">i</span> <span class="n">eth1</span> <span class="n">dst</span> <span class="n">host</span> <span class="mf">192.168</span><span class="o">.</span><span class="mf">1.1</span>  
+</pre></div>
+
+
+<p>​      -i，指定数据包网卡；src/dst host，源IP/目的地址是192.168.1.1；host，来源或者目的地址</p>
+<p>​    // 过滤端口</p>
+<div class="hlcode"><pre><span class="n">tcpdump</span> <span class="o">-</span><span class="n">i</span> <span class="n">eth1</span> <span class="n">port</span> <span class="mi">8080</span>  
+<span class="n">tcpdump</span> <span class="o">-</span><span class="n">i</span> <span class="n">eth1</span> <span class="n">src</span> <span class="n">port</span> <span class="mi">8080</span>  
+<span class="n">tcpdump</span> <span class="o">-</span><span class="n">i</span> <span class="n">eth1</span> <span class="n">dst</span> <span class="n">port</span> <span class="mi">8080</span>  
+</pre></div>
+
+
+<p>​       源端口（src）、目的端口（dst）是8080  </p>
+<p>​    // 过滤协议类型</p>
+<div class="hlcode"><pre><span class="n">tcpdump</span> <span class="o">-</span><span class="n">i</span> <span class="n">eth1</span> <span class="n">tcp</span>
+</pre></div>
+
+
+<p>​    -- 包数据分析</p>
+<p>​        保存抓包的数据为pcap格式，使用wireshark客户端进行分析</p>
+<div class="hlcode"><pre><span class="n">tcpdump</span> <span class="o">-</span><span class="n">i</span> <span class="n">eth1</span> <span class="n">dst</span> <span class="n">port</span> <span class="mi">9999</span> <span class="o">-</span><span class="n">w</span> <span class="n">dump</span><span class="p">.</span><span class="n">pcap</span>  
+</pre></div>
+
+
+<blockquote>
+<p><strong>· nslookup/dig</strong></p>
+</blockquote>
+<p>​      定位域名源站工具。ping命令可以解析域名IP但是不全，nslookup/dig可以查看DNS上域名解析的A记录、Cname等信息。相比较而言，我更新习惯使用dig。windows下dig需要额外安装软件包。</p>
+<p>​    // 查看DNS上指定域名解析结果</p>
+<div class="hlcode"><pre>   <span class="n">dig</span> <span class="n">simiki</span><span class="p">.</span><span class="n">org</span>
+</pre></div>
+
+
+<p>​       域名解析的结果可作为一个HTTP WEB网站的入口进行数据流链路梳理，静态网站走CDN一般解析出来的是cname。另外，也可以查看指定DNS服务器上的域名解析结果，用于在申请域名或者域名解析地址变动情况下的问题排查与确认。</p>
+<div class="hlcode"><pre>   <span class="n">dig</span> <span class="n">simiki</span><span class="o">.</span><span class="n">org</span> <span class="nd">@114.114.114.114</span>
+</pre></div>
+
+
+<blockquote>
+<p><strong>· netstat</strong></p>
+</blockquote>
+<p>​        查看当前系统中端口开放与连接的一些情况。主要用于查看TCP程序端口直接连接信息。</p>
+<p>​     // 常用参数</p>
+<div class="hlcode"><pre><span class="o">-</span><span class="n">t</span> <span class="p">:</span> <span class="err">指明显示</span><span class="n">TCP</span><span class="err">端口</span> 
+<span class="o">-</span><span class="n">u</span> <span class="p">:</span> <span class="err">指明显示</span><span class="n">UDP</span><span class="err">端口</span> 
+<span class="o">-</span><span class="n">l</span> <span class="p">:</span>  <span class="o">--</span><span class="n">listening</span> <span class="err">，</span><span class="n">display</span> <span class="n">listening</span> <span class="n">server</span> <span class="n">sockets</span>
+<span class="o">-</span><span class="n">p</span> <span class="p">:</span> <span class="err">显示进程标识符和程序名称，每一个套接字</span><span class="o">/</span><span class="err">端口都属于一个程序。</span> 
+<span class="o">-</span><span class="n">n</span> <span class="p">:</span> <span class="err">不进行</span><span class="n">DNS</span><span class="err">轮询，显示</span><span class="n">IP</span>
+<span class="o">-</span><span class="n">a</span> <span class="err">：</span><span class="o">--</span><span class="nb">all</span> <span class="err">，</span><span class="n">display</span> <span class="nb">all</span> <span class="n">sockets</span> <span class="p">(</span><span class="n">default</span><span class="p">:</span> <span class="n">connected</span><span class="p">)</span>
+</pre></div>
+
+
+<p>​      // 查看当前所有TCP端口</p>
+<div class="hlcode"><pre><span class="n">netstat</span> <span class="o">-</span><span class="n">ntlp</span>
+</pre></div>
+
+
+<div class="hlcode"><pre><span class="p">[</span><span class="n">root</span><span class="nd">@test</span><span class="o">-</span><span class="mo">0002</span> <span class="o">~</span><span class="p">]</span><span class="c"># netstat -ntlp</span>
+<span class="n">Active</span> <span class="n">Internet</span> <span class="n">connections</span> <span class="p">(</span><span class="n">only</span> <span class="n">servers</span><span class="p">)</span>
+<span class="n">Proto</span> <span class="n">Recv</span><span class="o">-</span><span class="n">Q</span> <span class="n">Send</span><span class="o">-</span><span class="n">Q</span> <span class="n">Local</span> <span class="n">Address</span>           <span class="n">Foreign</span> <span class="n">Address</span>         <span class="n">State</span>       <span class="n">PID</span><span class="o">/</span><span class="n">Program</span> <span class="n">name</span>    
+<span class="n">tcp</span>        <span class="mi">0</span>      <span class="mi">0</span> <span class="mf">0.0</span><span class="o">.</span><span class="mf">0.0</span><span class="p">:</span><span class="mi">22</span>              <span class="mf">0.0</span><span class="o">.</span><span class="mf">0.0</span><span class="p">:</span><span class="o">*</span>               <span class="n">LISTEN</span>      <span class="mi">1146</span><span class="o">/</span><span class="n">sshd</span>          
+<span class="n">tcp</span>        <span class="mi">0</span>      <span class="mi">0</span> <span class="mf">127.0</span><span class="o">.</span><span class="mf">0.1</span><span class="p">:</span><span class="mi">32000</span>         <span class="mf">0.0</span><span class="o">.</span><span class="mf">0.0</span><span class="p">:</span><span class="o">*</span>               <span class="n">LISTEN</span>      <span class="mi">957</span><span class="o">/</span><span class="n">java</span>           
+<span class="n">tcp</span>        <span class="mi">0</span>      <span class="mi">0</span> <span class="mf">0.0</span><span class="o">.</span><span class="mf">0.0</span><span class="p">:</span><span class="mi">10050</span>           <span class="mf">0.0</span><span class="o">.</span><span class="mf">0.0</span><span class="p">:</span><span class="o">*</span>               <span class="n">LISTEN</span>      <span class="mi">24094</span><span class="o">/</span><span class="n">zabbix_agentd</span> 
+<span class="n">tcp6</span>       <span class="mi">0</span>      <span class="mi">0</span> <span class="p">:::</span><span class="mi">9778</span>                <span class="p">:::</span><span class="o">*</span>                    <span class="n">LISTEN</span>      <span class="mi">26805</span><span class="o">/</span><span class="n">java</span>          
+<span class="n">tcp6</span>       <span class="mi">0</span>      <span class="mi">0</span> <span class="p">:::</span><span class="mi">22</span>                   <span class="p">:::</span><span class="o">*</span>                    <span class="n">LISTEN</span>      <span class="mi">1146</span><span class="o">/</span><span class="n">sshd</span>  
+</pre></div>
+
+
+<p>​        Recv-Q、Send-Q是数据包接受、发送的本地缓冲，如果是非0则出现堵包情况。</p>
+<p>​       // 查看所有连接，包括TIME_WAIT等其他状态，可作为网络排查与统计的参考</p>
+<div class="hlcode"><pre><span class="n">netstat</span> <span class="o">-</span><span class="n">anlp</span><span class="o">|</span><span class="n">grep</span> <span class="p">:</span><span class="mi">9778</span>
+</pre></div>
+
+
+<blockquote>
+<p>· route,iptables</p>
+</blockquote>
+<p>​        单独说明，此处忽略。</p>
+<h2 id="_3">三、 压测/性能相关</h2>
+<blockquote>
+<p>· iostat/vmstat（输入/输出统计、虚拟内存统计）</p>
+</blockquote>
+<ol>
+<li>
+<p>iostat</p>
+<p>查看所有设备负载情况</p>
+<p><img alt="" src="..\attach\iostat.png" /></p>
+</li>
+</ol>
+<p>主要关注两个cpu的属性：%iowait：CPU等待输入输出完成时间的百分比；%idle：CPU空闲时间百分比。</p>
+<p>​    %iowait的值过高，存在I/O瓶颈；%idle值高，表示CPU空闲；如果%idle值高但系统响应慢，说明CPU空闲，但是可能内存不足，考虑增加内存；%idle值持续较低，说明CPU占用高，需要调整CPU。</p>
+<p>​    // 每隔2秒刷新显示，且显示3次</p>
+<div class="hlcode"><pre><span class="n">iostat</span> <span class="mi">2</span>  <span class="mi">3</span>
+</pre></div>
+
+
+<p>​    在做压力测试时，关注的下面这些参数，如tps、read、write等。</p>
+<div class="hlcode"><pre><span class="n">tps</span><span class="err">：该设备每秒的传输次数</span>
+<span class="n">kB_read</span><span class="o">/</span><span class="n">s</span><span class="err">：每秒从设备（</span><span class="n">drive</span> <span class="n">expressed</span><span class="err">）读取的数据量；</span>
+<span class="n">kB_wrtn</span><span class="o">/</span><span class="n">s</span><span class="err">：每秒向设备（</span><span class="n">drive</span> <span class="n">expressed</span><span class="err">）写入的数据量；</span>
+<span class="n">kB_read</span><span class="err">：</span>  <span class="err">读取的总数据量；</span>
+<span class="n">kB_wrtn</span><span class="err">：写入的总数量数据量；</span>
+</pre></div>
+
+
+<p>这些参数可作为硬件评估，上线前的压测数据。</p>
+<ol>
+<li>
+<p>vmstat</p>
+<p><img alt="" src="..\attach\vmstat.png" /></p>
+</li>
+</ol>
+<p>主要关注procs和cpu这两块。</p>
+<p>​    procs：r 运行队列中进程数量，长期较大考虑增加CPU；b 等待IO的进程数量</p>
+<p>​    cpu：us(user time)，长期过高可能是程序比较占CPU资源，应检查原因</p>
+<p>​    wa：IO等待时间百分比 wa的值高时，说明IO等待比较严重<br />
+​    id：空闲百分比</p>
+<blockquote>
+<p>ifstat/iftop（网络实时流量监控）</p>
+</blockquote>
+<p>​     ifstat只能简单给出网卡一些流量信息，这里主要记录下iftop。</p>
+<ol>
+<li>
+<p>下载与安装（<a href="http://www.ex-parrot.com/~pdw/iftop/">http://www.ex-parrot.com/~pdw/iftop/</a>）</p>
+<p>// 添加EPEL，<a href="https://www.vpser.net/manage/centos-rhel-linux-third-party-source-epel.html">https://www.vpser.net/manage/centos-rhel-linux-third-party-source-epel.html</a></p>
+<p><code>yum -y install iftop</code></p>
+</li>
+<li>
+<p>界面说明</p>
+</li>
+</ol>
+<p><img alt="" src="..\attach\iftop.png" /></p>
+<p>​    中间的&lt;= =&gt;这两个左右箭头，表示的是流量的方向。</p>
+<p>​   TX：发送流量<br />
+​   RX：接收流量<br />
+​   TOTAL：总流量<br />
+​   Cumm：运行iftop到目前时间的总流量<br />
+​   peak：流量峰值<br />
+​   rates：分别表示过去 2s 10s 40s 的平均流量</p>
+<ol>
+<li>常用参数</li>
+</ol>
+<p>-F 显示特定网段的进出流量</p>
+<p><code>python
+   iftop -F 192.168.1.5/24</code></p>
+<p>-i 设定监测的网卡</p>
+<p><code>python
+   iftop -i eth0</code></p>
+<p>-n 使host信息默认直接都显示IP</p>
+<p><code>iftop -n</code></p>
+<blockquote>
+<p>· dstat</p>
+</blockquote>
+<p>​        是以上几个命令的拓展，增加了监控项，很方便监控并用于基准测试和故障排查。</p>
+<p><img alt="" src="..\attach\dstat.png" /></p>
+<h2 id="_4">四、故障分析与排查</h2>
+<p>​    这一块主要是一些Linux下调试诊断，分析程序及系统调用的一些工具。目前接触到的如，strace 、perf。这是针对二进制编译的程序，在未开启debug日志下的一些排查手段。针对性比较强，等有实际使用案例再补充。</p>
+<h2 id="_5">五、结束语</h2>
+<p>​    Linux下涉及的工具很多，除了上面提到的还有一些开源社区提供的工具。在网络、监控、性能分析上都有相关涉及。当然，在业务服务器非常多的时候，这些命令只能起一些辅助的作用，更多的监控项应由专业的监控工具，如Zabbix去收集，设置其报警阈值。</p>
+    </div>
+    <div id="footer">
+      <span>
+        <p>Copyright © 2019 Lorryrui.
+        Powered by <a href="http://simiki.org/" target="_blank">Simiki</a>.</p>
+        <p>Site Generated 2019-03-07 13:22:40</p>
+      </span>
+    </div>
+
+    
+    
+  </body>
+</html>
