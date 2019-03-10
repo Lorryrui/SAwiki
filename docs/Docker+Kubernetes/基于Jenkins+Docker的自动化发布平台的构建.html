@@ -1,0 +1,90 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <link rel="Stylesheet" type="text/css" href="/SAwiki/static/css/style.css">
+    <link rel="Stylesheet" type="text/css" href="/SAwiki/static/css/tango.css">
+    <link rel="shortcut icon" href="/SAwiki/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/SAwiki/favicon.ico" type="image/x-icon">
+    <link rel="alternate" type="application/atom+xml" href="atom.xml" title="Atom feed">
+    <title>Jenkins and Docker - SA Reference</title>
+    <meta name="keywords" content="SA"/>
+    <meta name="description" content="SAwiki is a simple static site for SA Engineer."/>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  </head>
+
+  <body>
+    <div id="container">
+      
+<div id="header">
+  <div class="post-nav"><a href="/SAwiki/">Home</a>&nbsp;&#187;&nbsp;<a href="/SAwiki/#Docker+Kubernetes">Docker+Kubernetes</a>&nbsp;&#187;&nbsp;Jenkins and Docker
+    <span class="updated">Page Updated&nbsp;
+      2019-03-07 21:42
+    </span></div>
+</div>
+<div class="clearfix"></div>
+
+<div class="page_title">Jenkins and Docker</div>
+
+  <h1 id="jenkinsdocker">基于Jenkins+Docker的自动化发布平台的构建</h1>
+<h2 id="harbor-">一、 Harbor--自建镜像仓库</h2>
+<p>​    1.1 关于Harbor</p>
+<p>​        在使用Docker的时候，通常需要统一的镜像仓库作为镜像存储与分发。Docker Registry虽然为我们提供镜像存储，但是考虑到镜像的权限管理与管理的方便性，在生产环境还是比较推荐使用Harbor作为企业的私有镜像仓库。</p>
+<blockquote>
+<p>​       Docker Registry  <a href="https://docs.docker.com/registry/">https://docs.docker.com/registry/</a></p>
+<p>​       Harbor  <a href="https://goharbor.io/">https://goharbor.io/</a></p>
+</blockquote>
+<p>​    1.2 Harbor的安装与配置</p>
+<blockquote>
+<p><a href="https://github.com/goharbor/harbor/blob/master/docs/installation_guide.md">https://github.com/goharbor/harbor/blob/master/docs/installation_guide.md</a></p>
+</blockquote>
+<p>​        1.2.1 下载对应的版本</p>
+<p>​            安装Docker：<a href="https://docs.docker.com/install/linux/docker-ce/centos/">https://docs.docker.com/install/linux/docker-ce/centos/</a></p>
+<p>​       安装Docker-compose：<a href="https://docs.docker.com/compose/install/">https://docs.docker.com/compose/install/</a></p>
+<p>​            Harbor offline版本： <a href="https://storage.googleapis.com/harbor-releases/release-1.7.0/harbor-offline-installer-v1.7.4.tgz">https://storage.googleapis.com/harbor-releases/release-1.7.0/harbor-offline-installer-v1.7.4.tgz</a></p>
+<p>​        1.2.2 配置（harbor.cfg）</p>
+<p>​            详细的配置参数官方文档有说明。我这里主要有 HTTPS和关闭注册账号两项配置，配置内容参考：</p>
+<div class="hlcode"><pre>        <span class="n">hostname</span> <span class="o">=</span> <span class="n">harbor</span><span class="o">.</span><span class="n">mydomain</span><span class="o">.</span><span class="n">com</span><span class="o">.</span><span class="n">cn</span>
+        <span class="n">ui_url_protocol</span> <span class="o">=</span> <span class="n">https</span>
+        <span class="n">ssl_cert</span> <span class="o">=</span> <span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">cert</span><span class="o">/</span><span class="n">server</span><span class="o">.</span><span class="n">crt</span> <span class="c"># 域名证书cer</span>
+        <span class="n">ssl_cert_key</span> <span class="o">=</span> <span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">cert</span><span class="o">/</span><span class="n">server</span><span class="o">.</span><span class="n">key</span> <span class="c"># 域名证书key</span>
+        <span class="n">secretkey_path</span> <span class="o">=</span> <span class="o">/</span><span class="n">data</span>
+        <span class="n">auth_mode</span> <span class="o">=</span> <span class="n">db_auth</span>
+        <span class="n">self_registration</span> <span class="o">=</span> <span class="n">off</span> <span class="c"># 关闭注册账号功能</span>
+</pre></div>
+
+
+<p>​       LDAP配置参考：<a href="https://kb.vmware.com/s/article/2148949">https://kb.vmware.com/s/article/2148949</a> 考虑到安全性，慎用。</p>
+<p>​        1.2.3 安装与启动</p>
+<p>​       ./prepare  </p>
+<p>​            ./install.sh  </p>
+<p>​       docker-compose stop   </p>
+<p>​       docker-compose up -d   </p>
+<p>​        1.2.4 访问<br />
+​       <a href="http://harbor.mydomain.com.cn">http://harbor.mydomain.com.cn</a>   </p>
+<p>​       默认账号密码： admin/Harbor12345</p>
+<p>​    PS：① 建议使用HTTPS，docker pull 默认使用https，否则要修改docker的配置  </p>
+<p>​            ②  harbor.cfg中证书以及证书路径不需要修改，否则需要调整docker-compose.yml  </p>
+<p>​      1.3 Harbor使用</p>
+<p>​       1.3.1 存储容量</p>
+<p><img alt="" src="..\attach\disk.png" /></p>
+<p>​       默认是/data所在盘的大小，一般是/目录的大小。建议增加一块存储较大硬盘mount到/data上。</p>
+<p>​       1.3.2 邮箱配置</p>
+<p><img alt="" src="..\attach\harbor_mail.png" /></p>
+<p>​        Harbor内置邮件功能的配置，需要配置SMTP邮箱服务相关信息用于发送邮件。</p>
+<p>​      1.3.3 认证模式配置</p>
+<p><img alt="" src="..\attach\harbor_auth.png" /></p>
+<p>​       登录认证方式。默认是数据库，可以使用LDAP。允许自注册功能也可以在这里开启和关闭     </p>
+<p>​       </p>
+    </div>
+    <div id="footer">
+      <span>
+        <p>Copyright © 2019 Lorryrui.
+        Powered by <a href="http://simiki.org/" target="_blank">Simiki</a>.</p>
+        <p>Site Generated 2019-03-10 15:18:10</p>
+      </span>
+    </div>
+
+    
+    
+  </body>
+</html>
