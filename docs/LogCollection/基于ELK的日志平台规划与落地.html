@@ -27,36 +27,105 @@
 
   <h1 id="elk">基于ELK的日志平台规划与落地</h1>
 <h2 id="_1">一 简介</h2>
+<p>​    Elastic Stack是开源(<a href="www.elastic.co">www.elastic.co</a>)的日志搜集解决方案，主要是解决分布式系统中日志集中管理。ELK是Elasticsearch、Logstash、Kibana的简称。目前Elastic Stack生态圈的组件很多，适用于各种不同的业务场景，如日志分析、指标分析、网站搜索、安全分析等。</p>
+<p>​    搭建基于ELK的日志平台，主要是通过搜集程序日志，了解业务运行状况从而制定相应的调整策略。按照当前规划，制定的ELK整体架构图如下：</p>
+<p>![](..\attach\elk stack.jpg)</p>
 <h2 id="elasticsearch">二 Elasticsearch集群搭建</h2>
 <p>​    2.1 准备</p>
 <p>​        Elasticsearch集群节点数量保证是奇数个，这里以3个ES节点为例。服务器初始环境的配置包括：</p>
-<p>​            JDK版本： 1.8</p>
-<p>​            操作系统文件打开数(/etc/security/limits.conf)：  </p>
-<p>​           echo "<em> soft nofile 65535"  &gt;&gt; /etc/security/limits.conf<br />
-​       echo "</em> hard nofile 65535"  &gt;&gt; /etc/security/limits.conf<br />
-​       fs.file-max = 6553560 (/etc/sysctl.conf)  </p>
-<p>​     2.2 集群搭建（Elasticsearch 6.6.1）</p>
+<p>​           ·  JDK版本： 1.8</p>
+<p>​           ·  操作系统文件打开数(/etc/security/limits.conf)：  </p>
+<p>​           echo "<em> soft nofile 65536"  &gt;&gt; /etc/security/limits.conf<br />
+​       echo "</em> hard nofile 65536"  &gt;&gt; /etc/security/limits.conf<br />
+​       · /etc/sysctl.conf</p>
+<p>​       fs.file-max = 6553560   </p>
+<p>​       vm.max_map_count=262144    </p>
+<p>​       · 服务器目录规划（目录权限属于elastic用户）</p>
+<p>​                  /opt  elasticsearch程序、日志所在路径</p>
+<p>​             /data 新挂载1T盘，做LVM。ES的数据存储路径</p>
+<p>​        · 端口开放</p>
+<p>​          9200为ES启动默认端口；9300为ES集群间通讯端口。开放2个端口。</p>
+<p>​       重启服务器。</p>
+<p>​     2.2 集群搭建（Elasticsearch 6.6.2）</p>
 <p>​            2.2.1 安装包下载</p>
-<p>​       <a href="https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.6.1.tar.gz">https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.6.1.tar.gz</a></p>
+<p>​       <a href="https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.6.2.tar.gz">https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.6.2.tar.gz</a></p>
 <p>​       程序启动只能以非root账号，这里使用elastic</p>
 <p>​       2.2.2 集群配置</p>
-<p>​    </p>
-<h2 id="elastic-stack-ldap">三 Elastic Stack 接入LDAP用户认证</h2>
+<p>​       ·  修改配置文件（/opt/elasticsearch-6.6.2/config/elasticsearch.yml）</p>
+<div class="hlcode"><pre><span class="n">cluster</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">elk</span><span class="o">-</span><span class="n">cluster</span>  
+<span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">es</span><span class="o">-</span><span class="mo">0001</span>  
+<span class="n">path</span><span class="o">.</span><span class="n">data</span><span class="p">:</span> <span class="o">/</span><span class="n">data</span>  
+<span class="n">path</span><span class="o">.</span><span class="n">logs</span><span class="p">:</span> <span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">elasticsearch</span><span class="o">-</span><span class="mf">6.6</span><span class="o">.</span><span class="mi">2</span><span class="o">/</span><span class="n">logs</span>
+<span class="n">network</span><span class="o">.</span><span class="n">host</span><span class="p">:</span> <span class="mf">0.0</span><span class="o">.</span><span class="mf">0.0</span>  <span class="c"># 集群配置 0.0.0.0  </span>
+<span class="n">http</span><span class="o">.</span><span class="n">port</span><span class="p">:</span> <span class="mi">9200</span>  <span class="c"># ES服务端口  </span>
+<span class="n">discovery</span><span class="o">.</span><span class="n">zen</span><span class="o">.</span><span class="n">ping</span><span class="o">.</span><span class="n">unicast</span><span class="o">.</span><span class="n">hosts</span><span class="p">:</span> <span class="p">[</span><span class="s">&quot;192.168.1.2&quot;</span><span class="p">,</span> <span class="s">&quot;192.168.1.3&quot;</span><span class="p">,</span> <span class="s">&quot;192.168.1.4&quot;</span><span class="p">]</span> <span class="c">#参与选主ES</span>
+<span class="n">discovery</span><span class="o">.</span><span class="n">zen</span><span class="o">.</span><span class="n">minimum_master_nodes</span><span class="p">:</span> <span class="mi">2</span> <span class="c"># 参与选主实例数/2 + 1    </span>
+</pre></div>
+
+
+<p>​                  ·  修改JVM内存大小（/opt/elasticsearch-6.6.2/config/jvm.options）</p>
+<div class="hlcode"><pre><span class="c"># 默认1G，调整为50%服务器内存</span>
+<span class="o">-</span><span class="n">Xms4g</span>
+<span class="o">-</span><span class="n">Xmx4g</span>
+</pre></div>
+
+
+<p>​   2.3 Elasticsearch集群验证</p>
+<div class="hlcode"><pre><span class="n">curl</span> <span class="s">&#39;192.168.1.2:9200/_cat/health?v&#39;</span>  <span class="c"># 查看节点状态  </span>
+<span class="n">curl</span> <span class="s">&#39;192.168.1.2:9200/_cat/nodes?v&#39;</span>   <span class="c"># 查看集群信息       </span>
+</pre></div>
+
+
+<h2 id="kibana">三 Kibana配置与使用</h2>
+<p>​    3.1 准备</p>
+<p>​   · JDK版本 1.8</p>
+<p>​   · 文件打开数配置，参考2.1</p>
+<p>​    3.2 安装与配置（Kibana 6.6.2）</p>
+<p>​        3.2.1 安装包下载（yum源）</p>
+<p>​       <a href="https://www.elastic.co/guide/en/kibana/current/rpm.html">https://www.elastic.co/guide/en/kibana/current/rpm.html</a></p>
+<p>​   3.2.2 配置连接Elasticsearch（/etc/kibana/kibana.yml）     </p>
+<div class="hlcode"><pre><span class="n">server</span><span class="o">.</span><span class="n">port</span><span class="p">:</span> <span class="mi">5601</span>
+<span class="n">server</span><span class="o">.</span><span class="n">host</span><span class="p">:</span> <span class="s">&quot;0.0.0.0&quot;</span>
+<span class="n">elasticsearch</span><span class="o">.</span><span class="n">hosts</span><span class="p">:</span> <span class="p">[</span><span class="s">&quot;http://192.168.1.2:9200&quot;</span><span class="p">,</span><span class="s">&quot;http://192.168.1.3:9200&quot;</span><span class="p">,</span><span class="s">&quot;http://192.168.1.4:9200&quot;</span><span class="p">]</span>
+</pre></div>
+
+
+<p>​    3.2.3 Kibana服务管理</p>
+<p>​       /bin/systemctl enable kibana.service<br />
+​       /bin/systemctl start kibana.service</p>
+<p>​   3.3 Kibana的使用       </p>
+<h2 id="elastic-stack">四 Elastic Stack 接入安全</h2>
 <ol>
-<li>官方文档参考</li>
+<li>1Nginx配置HTTP访问加密</li>
 </ol>
-<p>​    <a href="https://www.elastic.co/guide/en/elastic-stack-overview/current/ldap-realm.html">https://www.elastic.co/guide/en/elastic-stack-overview/current/ldap-realm.html</a></p>
-<p>​    <a href="https://www.elastic.co/guide/en/elastic-stack-overview/current/mapping-roles.html">https://www.elastic.co/guide/en/elastic-stack-overview/current/mapping-roles.html</a></p>
-<ol>
-<li>配置说明</li>
-</ol>
-<p>使用X-pack插件，该插件收费，需要license。</p>
+<p>​    高版本Elasticsearch的X-pack插件官方已收费，目前ES集群未加密。Kibana由于会在公网使用，所以配置Nginx转发做简单密码认证。</p>
+<p>​      4.1.1 Kibana配置调整</p>
+<p>​       server.host: "0.0.0.0" 修改为 server.host: "localhost"</p>
+<p>​      4.1.2 生成登录的用户名/密码</p>
+<div class="hlcode"><pre><span class="n">sh</span> <span class="o">-</span><span class="n">c</span> <span class="s">&quot;echo -n &#39;logcollection:&#39; &gt;&gt; /etc/nginx/.htpasswd&quot;</span>
+<span class="n">sh</span> <span class="o">-</span><span class="n">c</span> <span class="s">&quot;openssl passwd -apr1 &gt;&gt; /etc/nginx/.htpasswd&quot;</span>
+</pre></div>
+
+
+<p>​      4.1.3 配置Nginx反向代理</p>
+<div class="hlcode"><pre><span class="cp"># 主要配置</span>
+<span class="n">location</span> <span class="o">/</span> <span class="p">{</span>
+             <span class="n">auth_basic</span> <span class="s">&quot;Welcome! Please login first&quot;</span><span class="p">;</span>
+             <span class="n">auth_basic_user_file</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">nginx</span><span class="o">/</span><span class="p">.</span><span class="n">htpasswd</span><span class="p">;</span>
+             <span class="n">proxy_pass</span> <span class="n">http</span><span class="o">:</span><span class="c1">//localhost:5601;</span>
+        <span class="p">}</span>
+</pre></div>
+
+
+<p>​       4.1.4 访问Kibana</p>
+<p>​       打开Nginx访问端口，输入账号密码登录</p>
+<p><img alt="" src="..\attach\elklogin.png" /></p>
     </div>
     <div id="footer">
       <span>
         <p>Copyright © 2019 Lorryrui.
         Powered by <a href="http://simiki.org/" target="_blank">Simiki</a>.</p>
-        <p>Site Generated 2019-03-04 19:50:44</p>
+        <p>Site Generated 2019-03-14 14:46:12</p>
       </span>
     </div>
 
