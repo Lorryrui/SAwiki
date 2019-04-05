@@ -1,0 +1,127 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <link rel="Stylesheet" type="text/css" href="/SAwiki/static/css/style.css">
+    <link rel="Stylesheet" type="text/css" href="/SAwiki/static/css/tango.css">
+    <link rel="shortcut icon" href="/SAwiki/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/SAwiki/favicon.ico" type="image/x-icon">
+    <link rel="alternate" type="application/atom+xml" href="atom.xml" title="Atom feed">
+    <title>ELK Stack - SA Reference</title>
+    <meta name="keywords" content="SA"/>
+    <meta name="description" content="SAwiki is a simple static site for SA Engineer."/>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  </head>
+
+  <body>
+    <div id="container">
+      
+<div id="header">
+  <div class="post-nav"><a href="/SAwiki/">Home</a>&nbsp;&#187;&nbsp;<a href="/SAwiki/#LogCollection">LogCollection</a>&nbsp;&#187;&nbsp;ELK Stack
+    <span class="updated">Page Updated&nbsp;
+      2019-04-05 09:13
+    </span></div>
+</div>
+<div class="clearfix"></div>
+
+<div class="page_title">ELK Stack</div>
+
+  <h1 id="kafka">Kafka配置与使用</h1>
+<h2 id="_1">一、简要说明</h2>
+<p>​    Apache kafka是消息中间件的一种。以下是Kafka中常见的名词：</p>
+<p>​    ● producer ：生产者，产生消息。</p>
+<p>​    ● consumer：消费者，消费消息。</p>
+<p>​    ● topic：每一类的消息称之为一个主题(Topic)</p>
+<p>​    ● broker：存放消息的节点</p>
+<p>​    Kafka在大数据方面有广泛的应用。使用Kafka构建实时的数据流通道，利用Kafka本身的高吞吐量的特点，实现上下游的数据转换。</p>
+<h2 id="kafka_1">二、配置可用单节点Kafka实例</h2>
+<p>​    这里以 <a href="https://archive.apache.org/dist/kafka/2.0.0/kafka_2.11-2.0.0.tgz">kafka_2.11-2.0.0</a> 为例，说明在不同的环境下Kafka的配置与使用。</p>
+<h3 id="21">2.1 下载包</h3>
+<p>​    在官网下载相应版本的二进制包，同时也要下载Zookeeper。zookeeper主要保存了kafka的topic、consumer等信息，旧版本的kafka消费者是通过连接zookeeper进行消费的。这里下载的是zookeeper-3.4.9。</p>
+<h3 id="22-zookeeper">2.2 Zookeeper配置与使用</h3>
+<p>​    二进制Zookeeper包解压之后，bin目录存放的是一些使用脚本，conf目录存放了主要的配置文件。默认config/zoo_sample.cfg文件名修改为zoo.cfg。</p>
+<div class="hlcode"><pre><span class="n">dataDir</span><span class="o">=/</span><span class="n">soft</span><span class="o">/</span><span class="n">zookeeper</span><span class="o">-</span><span class="mf">3.4.9</span><span class="o">/</span><span class="n">data</span> <span class="err">#</span> <span class="n">zookeeper</span><span class="err">数据文件存放路径</span>
+<span class="n">clientPort</span><span class="o">=</span><span class="mi">2181</span> <span class="err">#</span> <span class="n">zookeeper</span><span class="err">启动端口</span>
+</pre></div>
+
+
+<p>​    bin目录下常用的是zkServer.sh和zkCli.sh脚本。</p>
+<div class="hlcode"><pre><span class="p">.</span><span class="o">/</span><span class="n">zkServer</span><span class="p">.</span><span class="n">sh</span> <span class="n">start</span> <span class="err">#</span> <span class="err">启动</span><span class="n">Zookeeper</span><span class="err">服务端</span>
+</pre></div>
+
+
+<div class="hlcode"><pre><span class="p">.</span><span class="o">/</span><span class="n">zkCli</span><span class="p">.</span><span class="n">sh</span> <span class="o">-</span><span class="n">server</span> <span class="n">ip</span><span class="o">:</span><span class="n">port</span> <span class="err">#</span> <span class="err">启动</span><span class="n">zookeeper</span><span class="err">客户端，用于查看</span><span class="n">zookeeper</span><span class="err">信息</span>
+</pre></div>
+
+
+<p>​    Zookeeper是常用的配置存放工具。分布式系统中会使用Zookeeper保存配置信息，Java应用程序连接Zookeeper实现程序配置的热加载。类似的工具还有ETCD，详细的介绍可官网。这里连接zookeeper可以查看到当前Kafka实例中Topic的信息：</p>
+<div class="hlcode"><pre><span class="p">[</span><span class="n">zk</span><span class="o">:</span> <span class="n">localhost</span><span class="o">:</span><span class="mi">2181</span><span class="p">(</span><span class="n">CONNECTED</span><span class="p">)</span> <span class="mi">2</span><span class="p">]</span> <span class="n">ls</span> <span class="o">/</span><span class="n">config</span><span class="o">/</span><span class="n">topics</span>
+<span class="p">[</span><span class="n">hq</span><span class="o">-</span><span class="n">useraccess</span><span class="p">,</span> <span class="n">datacollectlog</span><span class="p">,</span> <span class="n">hq</span><span class="o">-</span><span class="n">vss</span><span class="p">,</span> <span class="n">__consumer_offsets</span><span class="p">]</span>
+</pre></div>
+
+
+<h3 id="23-kafka">2.3 Kafka的配置与使用</h3>
+<p>​    和Zookeeper类似，二进制包中bin目录存放的是一些使用脚本，conf目录存放了主要的配置文件。Kafka服务端的配置文件是conf/server.properties。</p>
+<div class="hlcode"><pre><span class="n">broker</span><span class="p">.</span><span class="n">id</span><span class="o">=</span><span class="mi">0</span> <span class="err">#</span> <span class="n">kafka</span><span class="err">实例唯一</span><span class="n">id</span>
+<span class="cp"># #############################</span>
+<span class="cp"># 配置公网kafka实例，同时内网消费者使用内网IP访问</span>
+<span class="n">listeners</span><span class="o">=</span><span class="n">PLAINTEXT</span><span class="o">:</span><span class="c1">//0.0.0.0:9092</span>
+<span class="n">advertised</span><span class="p">.</span><span class="n">listeners</span><span class="o">=</span><span class="n">PLAINTEXT</span><span class="o">:</span><span class="c1">//221.112.112.111:9092</span>
+<span class="n">advertised</span><span class="p">.</span><span class="n">host</span><span class="p">.</span><span class="n">name</span><span class="o">=</span><span class="n">bird</span><span class="o">-</span><span class="n">web</span><span class="o">-</span><span class="n">middleware</span><span class="p">.</span><span class="n">novalocal</span>
+<span class="cp"># ##############################</span>
+<span class="n">num</span><span class="p">.</span><span class="n">network</span><span class="p">.</span><span class="n">threads</span><span class="o">=</span><span class="mi">3</span>
+<span class="n">num</span><span class="p">.</span><span class="n">io</span><span class="p">.</span><span class="n">threads</span><span class="o">=</span><span class="mi">4</span>
+<span class="n">socket</span><span class="p">.</span><span class="n">send</span><span class="p">.</span><span class="n">buffer</span><span class="p">.</span><span class="n">bytes</span><span class="o">=</span><span class="mi">102400</span>
+<span class="n">socket</span><span class="p">.</span><span class="n">receive</span><span class="p">.</span><span class="n">buffer</span><span class="p">.</span><span class="n">bytes</span><span class="o">=</span><span class="mi">102400</span>
+<span class="n">socket</span><span class="p">.</span><span class="n">request</span><span class="p">.</span><span class="n">max</span><span class="p">.</span><span class="n">bytes</span><span class="o">=</span><span class="mi">104857600</span>
+<span class="n">log</span><span class="p">.</span><span class="n">dirs</span><span class="o">=/</span><span class="n">media</span><span class="o">/</span><span class="n">kafka_2</span><span class="mf">.11</span><span class="o">-</span><span class="mf">2.0.0</span><span class="o">/</span><span class="n">data</span> <span class="err">#</span> <span class="err">消息存储的路径</span>
+<span class="n">num</span><span class="p">.</span><span class="n">partitions</span><span class="o">=</span><span class="mi">3</span>
+<span class="n">num</span><span class="p">.</span><span class="n">recovery</span><span class="p">.</span><span class="n">threads</span><span class="p">.</span><span class="n">per</span><span class="p">.</span><span class="n">data</span><span class="p">.</span><span class="n">dir</span><span class="o">=</span><span class="mi">1</span>
+<span class="n">log</span><span class="p">.</span><span class="n">retention</span><span class="p">.</span><span class="n">hours</span><span class="o">=</span><span class="mi">72</span> <span class="err">#</span> <span class="err">消息保存时间，默认</span><span class="mi">168</span><span class="err">小时</span>
+<span class="n">log</span><span class="p">.</span><span class="n">segment</span><span class="p">.</span><span class="n">bytes</span><span class="o">=</span><span class="mi">1073741824</span>
+<span class="n">log</span><span class="p">.</span><span class="n">retention</span><span class="p">.</span><span class="n">check</span><span class="p">.</span><span class="n">interval</span><span class="p">.</span><span class="n">ms</span><span class="o">=</span><span class="mi">300000</span>
+<span class="n">zookeeper</span><span class="p">.</span><span class="n">connect</span><span class="o">=</span><span class="mf">192.168.1.4</span><span class="o">:</span><span class="mi">2181</span> <span class="err">#</span> <span class="n">zookeeper</span><span class="err">地址</span>
+<span class="n">zookeeper</span><span class="p">.</span><span class="n">connection</span><span class="p">.</span><span class="n">timeout</span><span class="p">.</span><span class="n">ms</span><span class="o">=</span><span class="mi">6000</span>
+</pre></div>
+
+
+<p>​    kafka后台启动</p>
+<div class="hlcode"><pre><span class="p">.</span><span class="o">/</span><span class="n">kafka</span><span class="o">-</span><span class="n">server</span><span class="o">-</span><span class="n">start</span><span class="p">.</span><span class="n">sh</span> <span class="o">-</span><span class="n">daemon</span> <span class="p">..</span><span class="o">/</span><span class="n">config</span><span class="o">/</span><span class="n">server</span><span class="p">.</span><span class="n">properties</span>
+</pre></div>
+
+
+<h3 id="24-kafka">2.4 Kafka管理与监控</h3>
+<p>​    kafka二进制包bin目录下有很多命令行下管理工具，这里介绍的是非官方的三方可视化的管理工具。</p>
+<h4 id="kafka-manager">● Kafka Manager</h4>
+<p>​    常用的Kafka管理工具，包含Topic的创建、删除、重新分区等操作。在控制台上也可以看到相应topic的消费组及消费情况(offset值)。具体使用方法可以参考：<a href="https://github.com/yahoo/kafka-manager">https://github.com/yahoo/kafka-manager</a> 。kafka-manager配置独立的zookeeper地址用于存储不同kafka实例的信息，从而管理不同的kafka集群。</p>
+<p><img alt="" src="..\attach\kafkamanager.png" />    </p>
+<h4 id="kafka-tool">● Kafka Tool</h4>
+<p>​    一款C/S架构的Kafka UI Tool。具体使用方法可以参考：<a href="http://www.kafkatool.com/download.html">http://www.kafkatool.com/download.html</a> 。使用Kafka Tool可以查看kafka实例的详细信息，并且可以可视化的看到kafka不同topic中的message信息。</p>
+<p><img alt="" src="..\attach\kafkatooltopic.png" /></p>
+<p>​    Kafka Tool也可以查看消费者的offset和lag的消息数。但是当kafka集群中数据过多时，这个工具有明显的卡顿。</p>
+<h2 id="kafka_2">三、配置高可用的Kafka集群</h2>
+<h2 id="_2">四、附录</h2>
+<blockquote>
+<p>Kafka教程</p>
+</blockquote>
+<p><a href="http://orchome.com/kafka/index">http://orchome.com/kafka/index</a></p>
+<blockquote>
+<p>Kafka Manager</p>
+</blockquote>
+<p>https://github.com/yahoo/kafka-manager</p>
+<blockquote>
+<p>Kafka技术分享目录索引</p>
+</blockquote>
+<p><a href="https://blog.csdn.net/lizhitao/article/details/39499283">https://blog.csdn.net/lizhitao/article/details/39499283</a></p>
+    </div>
+    <div id="footer">
+      <span>
+        <p>Copyright © 2019 Lorryrui.
+        Powered by <a href="http://simiki.org/" target="_blank">Simiki</a>.</p>
+        <p>Site Generated 2019-04-05 11:30:24</p>
+      </span>
+    </div>
+
+    
+    
+  </body>
+</html>
