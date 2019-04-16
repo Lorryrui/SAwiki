@@ -73,14 +73,51 @@
 <p>​        Harbor内置邮件功能的配置，需要配置SMTP邮箱服务相关信息用于发送邮件。</p>
 <p>​      1.3.3 认证模式配置</p>
 <p><img alt="" src="..\attach\harbor_auth.png" /></p>
-<p>​       登录认证方式。默认是数据库，可以使用LDAP。允许自注册功能也可以在这里开启和关闭     </p>
-<p>​       </p>
+<p>​       登录认证方式。默认是数据库，可以使用LDAP。允许自注册功能也可以在这里开启和关闭  </p>
+<h2 id="gitlab-">二、 Gitlab--统一配置存放</h2>
+<p>​    2.1 关于Gitlab</p>
+<blockquote>
+<p><a href="https://about.gitlab.com/">https://about.gitlab.com/</a></p>
+</blockquote>
+<p>​        为了便于程序配置的管理与下发，在不影响程序已有架构的情况下，使用Git作为统一的配置中心。Gitlab作为Git协议实现的代码托管平台，可以很方便的管理这些配置文件。自建的Gitlab服务在存放配置时，需要关闭注册功能；同时保证每个程序配置的仓库都是私有的，如需要提供给其他成员查看，添加相应的成员。</p>
+<p>​    2.2 Gitlab的安装与配置</p>
+<blockquote>
+<p><a href="https://docs.gitlab.com/ee/install/README.html">https://about.gitlab.com/install/#centos-7?version=ce</a></p>
+</blockquote>
+<p>​        2.2.1 这里选择安装的是Gitlab-ce版本。</p>
+<div class="hlcode"><pre><span class="n">curl</span> <span class="o">-</span><span class="n">sS</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">packages</span><span class="o">.</span><span class="n">gitlab</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">install</span><span class="o">/</span><span class="n">repositories</span><span class="o">/</span><span class="n">gitlab</span><span class="o">/</span><span class="n">gitlab</span><span class="o">-</span><span class="n">ce</span><span class="o">/</span><span class="n">script</span><span class="o">.</span><span class="n">rpm</span><span class="o">.</span><span class="n">sh</span> <span class="o">|</span> <span class="n">sudo</span> <span class="n">bash</span>
+<span class="n">yum</span> <span class="n">install</span> <span class="o">-</span><span class="n">y</span> <span class="n">gitlab</span><span class="o">-</span><span class="n">ce</span>
+</pre></div>
+
+
+<p>​   2.2.2 配置（/etc/gitlab/gitlab.rb）          </p>
+<div class="hlcode"><pre><span class="n">external_url</span> <span class="s">&#39;http://192.168.1.2&#39;</span> <span class="c"># 修改成相应的ip或者域名</span>
+</pre></div>
+
+
+<p>​        2.2.3 启动   </p>
+<div class="hlcode"><pre><span class="n">gitlab</span><span class="o">-</span><span class="n">ctl</span> <span class="n">reconfigure</span>  <span class="c"># 重新加载配置文件</span>
+<span class="n">gitlab</span><span class="o">-</span><span class="n">ctl</span> <span class="n">start</span><span class="o">/</span><span class="n">stop</span><span class="o">/</span><span class="n">restart</span><span class="o">/</span><span class="n">status</span> <span class="c"># 启动关闭相关的命令</span>
+</pre></div>
+
+
+<p>​        2.2.4 关闭注册功能</p>
+<p><img alt="" src="..\attach\gitlab.jpg" /></p>
+<p>​   去掉Sign up enable的勾选，保存即可关闭注册功能。</p>
+<p>​    2.3 Gitlab的使用</p>
+<p>​            2.3.1 私有仓库的创建</p>
+<p><img alt="" src="..\attach\demo.png" /></p>
+<p>​              2.3.2 仓库权限分配，添加合作者</p>
+<p><img alt="" src="..\attach\member.png" /></p>
+<p>​       2.3.3 配置上传、修改、下发</p>
+<p>​           使用基本的git命令进行操作。</p>
+<p>三、 Docker--容器化WEB应用</p>
     </div>
     <div id="footer">
       <span>
         <p>Copyright © 2019 Lorryrui.
         Powered by <a href="http://simiki.org/" target="_blank">Simiki</a>.</p>
-        <p>Site Generated 2019-03-10 15:18:10</p>
+        <p>Site Generated 2019-04-16 08:51:00</p>
       </span>
     </div>
 
