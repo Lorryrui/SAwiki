@@ -264,7 +264,7 @@ logging.files:
 
 ## 六 Elastic Stack 接入安全
 
-​    6.1Nginx配置HTTP访问加密
+  6.1 Nginx配置HTTP访问加密
 
 ​      高版本Elasticsearch的X-pack插件官方已收费，目前ES集群未开启认证。Kibana由于会在公网使用，所以配置Nginx转发做简单密码认证。
 
@@ -274,7 +274,7 @@ logging.files:
 
 ​      6.1.2 生成登录的用户名/密码
 
-```c
+```shell
 sh -c "echo -n 'logcollection:' >> /etc/nginx/.htpasswd"
 sh -c "openssl passwd -apr1 >> /etc/nginx/.htpasswd"
 ```
@@ -296,5 +296,83 @@ location / {
 
 ![](..\attach\elklogin.png)
 
+​       6.2  nginx-auth-ldap模块开启LDAP认证（推荐）
 
+​	  6.2.1 编译安装Nginx Lua环境
+
+> [https://github.com/openresty/lua-nginx-module#installation](https://github.com/openresty/lua-nginx-module#installation)
+
+​              a. LuaJIT环境
+
+​                   [https://github.com/openresty/luajit2/releases]( https://github.com/openresty/luajit2/releases)		    
+
+```c
+make && make install
+export LUAJIT_LIB=/usr/local/lib
+export LUAJIT_INC=/usr/local/include/luajit-2.1
+```
+
+​	      b. ngx_devel_kit (NDK)、ngx_lua 模块
+
+> ​		    [https://github.com/simplresty/ngx_devel_kit/tags](		    https://github.com/simplresty/ngx_devel_kit/tags)
+>
+> ​		    https://github.com/openresty/lua-nginx-module/tags
+
+​              c. 编译安装
+
+```shell
+yum install -y openldap-devel openssl openssl-devel gcc pcre pcre-devel gd gd-devel GeoIP GeoIP-devel provides geoip-devel
+```
+
+```shell
+./configure --prefix=/opt/nginx --with-http_stub_status_module --with-http_ssl_module --with-file-aio --with-http_realip_module --with-ld-opt="-Wl,-rpath,/usr/local/lib" --add-module=/usr/local/nginx_module/ngx_devel_kit-0.3.0 --add-module=/usr/local/nginx_module/lua-nginx-module-0.10.14
+make && make install
+```
+
+​           6.2.2 Nginx配置参考
+
+```python
+worker_processes  4;
+
+events {
+    worker_connections  1024;
+}
+
+
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+
+
+    sendfile        on;
+
+    keepalive_timeout  65;
+
+# LDAP config
+    ldap_server mycorp {
+        url ldap://ldapserver:389/DC=mycorp,DC=com,DC=cn?sAMAccountName?sub?(objectClass=person);
+        binddn "my@mycorp.com.cn";
+        binddn_passwd mypasswd;
+        group_attribute uniquemember;
+        group_attribute_is_dn on;
+        require valid_user;
+      }
+
+    server {
+        listen       15601;
+        server_name  mydomain;
+        auth_ldap "Welcome! Please login with  LDAP account";
+        auth_ldap_servers mycorp;
+
+        location / {
+            proxy_pass http://localhost:5601;
+        }
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   html;
+        }
+
+    }
+}
+```
 

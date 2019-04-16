@@ -215,7 +215,7 @@
 <p>​    5.3  服务启动</p>
 <p>​        systemctl start/stop/restart filebeat</p>
 <h2 id="elastic-stack">六 Elastic Stack 接入安全</h2>
-<p>​    6.1Nginx配置HTTP访问加密</p>
+<p>6.1 Nginx配置HTTP访问加密</p>
 <p>​      高版本Elasticsearch的X-pack插件官方已收费，目前ES集群未开启认证。Kibana由于会在公网使用，所以配置Nginx转发做简单密码认证。</p>
 <p>​      6.1.1 Kibana配置调整</p>
 <p>​       server.host: "0.0.0.0" 修改为 server.host: "localhost"</p>
@@ -238,6 +238,78 @@
 <p>​       6.1.4 访问Kibana</p>
 <p>​       打开Nginx访问端口，输入账号密码登录</p>
 <p><img alt="" src="..\attach\elklogin.png" /></p>
+<p>​       6.2  nginx-auth-ldap模块开启LDAP认证（推荐）</p>
+<p>​     6.2.1 编译安装Nginx Lua环境</p>
+<blockquote>
+<p><a href="https://github.com/openresty/lua-nginx-module#installation">https://github.com/openresty/lua-nginx-module#installation</a></p>
+</blockquote>
+<p>​              a. LuaJIT环境</p>
+<p>​                   <a href="https://github.com/openresty/luajit2/releases">https://github.com/openresty/luajit2/releases</a>         </p>
+<div class="hlcode"><pre><span class="n">make</span> <span class="o">&amp;&amp;</span> <span class="n">make</span> <span class="n">install</span>
+<span class="n">export</span> <span class="n">LUAJIT_LIB</span><span class="o">=/</span><span class="n">usr</span><span class="o">/</span><span class="n">local</span><span class="o">/</span><span class="n">lib</span>
+<span class="n">export</span> <span class="n">LUAJIT_INC</span><span class="o">=/</span><span class="n">usr</span><span class="o">/</span><span class="n">local</span><span class="o">/</span><span class="n">include</span><span class="o">/</span><span class="n">luajit</span><span class="o">-</span><span class="mf">2.1</span>
+</pre></div>
+
+
+<p>​         b. ngx_devel_kit (NDK)、ngx_lua 模块</p>
+<blockquote>
+<p>​         <a href="https://github.com/simplresty/ngx_devel_kit/tags">https://github.com/simplresty/ngx_devel_kit/tags</a></p>
+<p>​         https://github.com/openresty/lua-nginx-module/tags</p>
+</blockquote>
+<p>​              c. 编译安装</p>
+<div class="hlcode"><pre><span class="n">yum</span> <span class="n">install</span> <span class="o">-</span><span class="n">y</span> <span class="n">openldap</span><span class="o">-</span><span class="n">devel</span> <span class="n">openssl</span> <span class="n">openssl</span><span class="o">-</span><span class="n">devel</span> <span class="n">gcc</span> <span class="n">pcre</span> <span class="n">pcre</span><span class="o">-</span><span class="n">devel</span> <span class="n">gd</span> <span class="n">gd</span><span class="o">-</span><span class="n">devel</span> <span class="n">GeoIP</span> <span class="n">GeoIP</span><span class="o">-</span><span class="n">devel</span> <span class="n">provides</span> <span class="n">geoip</span><span class="o">-</span><span class="n">devel</span>
+</pre></div>
+
+
+<div class="hlcode"><pre><span class="p">.</span><span class="o">/</span><span class="n">configure</span> <span class="o">--</span><span class="n">prefix</span><span class="o">=/</span><span class="n">opt</span><span class="o">/</span><span class="n">nginx</span> <span class="o">--</span><span class="n">with</span><span class="o">-</span><span class="n">http_stub_status_module</span> <span class="o">--</span><span class="n">with</span><span class="o">-</span><span class="n">http_ssl_module</span> <span class="o">--</span><span class="n">with</span><span class="o">-</span><span class="n">file</span><span class="o">-</span><span class="n">aio</span> <span class="o">--</span><span class="n">with</span><span class="o">-</span><span class="n">http_realip_module</span> <span class="o">--</span><span class="n">with</span><span class="o">-</span><span class="n">ld</span><span class="o">-</span><span class="n">opt</span><span class="o">=</span><span class="s">&quot;-Wl,-rpath,/usr/local/lib&quot;</span> <span class="o">--</span><span class="n">add</span><span class="o">-</span><span class="n">module</span><span class="o">=/</span><span class="n">usr</span><span class="o">/</span><span class="n">local</span><span class="o">/</span><span class="n">nginx_module</span><span class="o">/</span><span class="n">ngx_devel_kit</span><span class="o">-</span><span class="mf">0.3.0</span> <span class="o">--</span><span class="n">add</span><span class="o">-</span><span class="n">module</span><span class="o">=/</span><span class="n">usr</span><span class="o">/</span><span class="n">local</span><span class="o">/</span><span class="n">nginx_module</span><span class="o">/</span><span class="n">lua</span><span class="o">-</span><span class="n">nginx</span><span class="o">-</span><span class="n">module</span><span class="o">-</span><span class="mf">0.10.14</span>
+<span class="n">make</span> <span class="o">&amp;&amp;</span> <span class="n">make</span> <span class="n">install</span>
+</pre></div>
+
+
+<p>​           6.2.2 Nginx配置参考</p>
+<div class="hlcode"><pre><span class="n">worker_processes</span>  <span class="mi">4</span><span class="p">;</span>
+
+<span class="n">events</span> <span class="p">{</span>
+    <span class="n">worker_connections</span>  <span class="mi">1024</span><span class="p">;</span>
+<span class="p">}</span>
+
+
+<span class="n">http</span> <span class="p">{</span>
+    <span class="n">include</span>       <span class="n">mime</span><span class="o">.</span><span class="n">types</span><span class="p">;</span>
+    <span class="n">default_type</span>  <span class="n">application</span><span class="o">/</span><span class="n">octet</span><span class="o">-</span><span class="n">stream</span><span class="p">;</span>
+
+
+    <span class="n">sendfile</span>        <span class="n">on</span><span class="p">;</span>
+
+    <span class="n">keepalive_timeout</span>  <span class="mi">65</span><span class="p">;</span>
+
+<span class="c"># LDAP config</span>
+    <span class="n">ldap_server</span> <span class="n">mycorp</span> <span class="p">{</span>
+        <span class="n">url</span> <span class="n">ldap</span><span class="p">:</span><span class="o">//</span><span class="n">ldapserver</span><span class="p">:</span><span class="mi">389</span><span class="o">/</span><span class="n">DC</span><span class="o">=</span><span class="n">mycorp</span><span class="p">,</span><span class="n">DC</span><span class="o">=</span><span class="n">com</span><span class="p">,</span><span class="n">DC</span><span class="o">=</span><span class="n">cn</span><span class="err">?</span><span class="n">sAMAccountName</span><span class="err">?</span><span class="n">sub</span><span class="err">?</span><span class="p">(</span><span class="n">objectClass</span><span class="o">=</span><span class="n">person</span><span class="p">);</span>
+        <span class="n">binddn</span> <span class="s">&quot;my@mycorp.com.cn&quot;</span><span class="p">;</span>
+        <span class="n">binddn_passwd</span> <span class="n">mypasswd</span><span class="p">;</span>
+        <span class="n">group_attribute</span> <span class="n">uniquemember</span><span class="p">;</span>
+        <span class="n">group_attribute_is_dn</span> <span class="n">on</span><span class="p">;</span>
+        <span class="n">require</span> <span class="n">valid_user</span><span class="p">;</span>
+      <span class="p">}</span>
+
+    <span class="n">server</span> <span class="p">{</span>
+        <span class="n">listen</span>       <span class="mi">15601</span><span class="p">;</span>
+        <span class="n">server_name</span>  <span class="n">mydomain</span><span class="p">;</span>
+        <span class="n">auth_ldap</span> <span class="s">&quot;Welcome! Please login with  LDAP account&quot;</span><span class="p">;</span>
+        <span class="n">auth_ldap_servers</span> <span class="n">mycorp</span><span class="p">;</span>
+
+        <span class="n">location</span> <span class="o">/</span> <span class="p">{</span>
+            <span class="n">proxy_pass</span> <span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">localhost</span><span class="p">:</span><span class="mi">5601</span><span class="p">;</span>
+        <span class="p">}</span>
+        <span class="n">error_page</span>   <span class="mi">500</span> <span class="mi">502</span> <span class="mi">503</span> <span class="mi">504</span>  <span class="o">/</span><span class="mi">50</span><span class="n">x</span><span class="o">.</span><span class="n">html</span><span class="p">;</span>
+        <span class="n">location</span> <span class="o">=</span> <span class="o">/</span><span class="mi">50</span><span class="n">x</span><span class="o">.</span><span class="n">html</span> <span class="p">{</span>
+            <span class="n">root</span>   <span class="n">html</span><span class="p">;</span>
+        <span class="p">}</span>
+
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
   <div class="relation">
     <h2>Related</h2>
     <ul>
@@ -251,7 +323,7 @@
       <span>
         <p>Copyright © 2019 Lorryrui.
         Powered by <a href="http://simiki.org/" target="_blank">Simiki</a>.</p>
-        <p>Site Generated 2019-03-19 12:28:12</p>
+        <p>Site Generated 2019-04-16 08:51:00</p>
       </span>
     </div>
 
