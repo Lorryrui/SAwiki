@@ -16,7 +16,7 @@
     <div id="container">
       
 <div id="header">
-  <div class="post-nav"><a href="/SAwiki/">Home</a>&nbsp;&#187;&nbsp;<a href="/SAwiki/#LogCollection">LogCollection</a>&nbsp;&#187;&nbsp;ELK Stack
+  <div class="post-nav"><a href="/SAwiki/">Home</a>&nbsp;&#187;&nbsp;<a href="/SAwiki/#LogCollection">LogCollection</a>&nbsp;&#187;&nbsp;Kafka
     <span class="updated">Page Updated&nbsp;
       2019-04-05 09:13
     </span></div>
@@ -99,7 +99,125 @@
 <p><img alt="" src="..\attach\kafkatooltopic.png" /></p>
 <p>​    Kafka Tool也可以查看消费者的offset和lag的消息数。但是当kafka集群中数据过多时，这个工具有明显的卡顿。</p>
 <h2 id="kafka_2">三、配置高可用的Kafka集群</h2>
-<h2 id="_2">四、附录</h2>
+<h3 id="31-kafka-cluster">3.1 Kafka-Cluster说明</h3>
+<p>​    日志在不同的网络环境下，有的需要走公网传输。搭建的kafka集群需要满足：支持内网和公网访问；Kafka集群作为日志搜集的中转，除了提供实时写入Elasticsearch，同时也可以使用Logstash将数据原样冷备到S3。</p>
+<h3 id="32">3.2 下载包</h3>
+<p>​    Kafka版本：<a href="https://www.apache.org/dyn/closer.cgi?path=/kafka/2.2.0/kafka_2.11-2.2.0.tgz">https://www.apache.org/dyn/closer.cgi?path=/kafka/2.2.0/kafka_2.11-2.2.0.tgz</a></p>
+<p>​    Zookeeper版本：<a href="http://mirror.bit.edu.cn/apache/zookeeper/zookeeper-3.4.14/zookeeper-3.4.14.tar.gz">http://mirror.bit.edu.cn/apache/zookeeper/zookeeper-3.4.14/zookeeper-3.4.14.tar.gz</a></p>
+<h3 id="33">3.3 配置与优化</h3>
+<h4 id="331-zookeeper">3.3.1 Zookeeper</h4>
+<blockquote>
+<p>zookeeper-3.4.14/conf/zoo.cfg  </p>
+</blockquote>
+<div class="hlcode"><pre><span class="cp"># The number of milliseconds of each tick</span>
+<span class="n">tickTime</span><span class="o">=</span><span class="mi">2000</span>
+<span class="cp"># The number of ticks that the initial </span>
+<span class="cp"># synchronization phase can take</span>
+<span class="n">initLimit</span><span class="o">=</span><span class="mi">10</span>
+<span class="cp"># The number of ticks that can pass between </span>
+<span class="cp"># sending a request and getting an acknowledgement</span>
+<span class="n">syncLimit</span><span class="o">=</span><span class="mi">5</span>
+<span class="cp"># the directory where the snapshot is stored.</span>
+<span class="cp"># do not use /tmp for storage, /tmp here is just </span>
+<span class="cp"># example sakes.</span>
+<span class="n">dataDir</span><span class="o">=/</span><span class="n">data</span><span class="o">/</span><span class="n">zookeeper</span>
+<span class="cp"># the port at which the clients will connect</span>
+<span class="n">clientPort</span><span class="o">=</span><span class="mi">2181</span>
+<span class="n">server</span><span class="mf">.1</span><span class="o">=</span><span class="n">kafka</span><span class="o">-</span><span class="n">az3</span><span class="o">-</span><span class="mo">0001</span><span class="o">:</span><span class="mi">2888</span><span class="o">:</span><span class="mi">3888</span>
+<span class="n">server</span><span class="mf">.2</span><span class="o">=</span><span class="n">kafka</span><span class="o">-</span><span class="n">az3</span><span class="o">-</span><span class="mo">0002</span><span class="o">:</span><span class="mi">2888</span><span class="o">:</span><span class="mi">3888</span>
+<span class="n">server</span><span class="mf">.3</span><span class="o">=</span><span class="n">kafka</span><span class="o">-</span><span class="n">az3</span><span class="o">-</span><span class="mo">0003</span><span class="o">:</span><span class="mi">2888</span><span class="o">:</span><span class="mi">3888</span>
+</pre></div>
+
+
+<p>dataDir目录新增myid文件，不同机器id不同用于区分（0-255）</p>
+<blockquote>
+<p>启动Zookeeper      </p>
+</blockquote>
+<div class="hlcode"><pre><span class="cp"># start/restart/stop/status</span>
+<span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">zookeeper</span><span class="o">-</span><span class="mf">3.4.14</span><span class="o">/</span><span class="n">bin</span><span class="o">/</span><span class="n">zkServer</span><span class="p">.</span><span class="n">sh</span> <span class="n">start</span>
+</pre></div>
+
+
+<blockquote>
+<p>查看集群状态      </p>
+</blockquote>
+<div class="hlcode"><pre><span class="cp"># Leader主节点</span>
+<span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">zookeeper</span><span class="o">-</span><span class="mf">3.4.14</span><span class="o">/</span><span class="n">bin</span><span class="o">/</span><span class="n">zkServer</span><span class="p">.</span><span class="n">sh</span> <span class="n">status</span>
+</pre></div>
+
+
+<h4 id="332-kafka">3.3.2 Kafka</h4>
+<blockquote>
+<p>/opt/kafka_2.11-2.2.0/config/server.properties</p>
+</blockquote>
+<div class="hlcode"><pre><span class="n">broker</span><span class="p">.</span><span class="n">id</span><span class="o">=</span><span class="mi">1</span> <span class="err">#</span> <span class="err">每个</span><span class="n">Node</span> <span class="n">id</span><span class="err">唯一</span>
+<span class="n">listeners</span><span class="o">=</span><span class="n">PLAINTEXT</span><span class="o">:</span><span class="c1">//0.0.0.0:9092</span>
+<span class="n">advertised</span><span class="p">.</span><span class="n">listeners</span><span class="o">=</span><span class="n">PLAINTEXT</span><span class="o">:</span><span class="c1">//192.168.1.3:9092</span>
+<span class="n">advertised</span><span class="p">.</span><span class="n">host</span><span class="p">.</span><span class="n">name</span><span class="o">=</span><span class="n">kafka</span><span class="o">-</span><span class="n">az3</span><span class="o">-</span><span class="mo">0003</span> <span class="err">#</span> <span class="n">hostname</span><span class="p">;</span><span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">hosts</span><span class="err">需要配置</span>
+<span class="n">num</span><span class="p">.</span><span class="n">network</span><span class="p">.</span><span class="n">threads</span><span class="o">=</span><span class="mi">3</span>
+<span class="n">num</span><span class="p">.</span><span class="n">io</span><span class="p">.</span><span class="n">threads</span><span class="o">=</span><span class="mi">8</span>
+<span class="n">socket</span><span class="p">.</span><span class="n">send</span><span class="p">.</span><span class="n">buffer</span><span class="p">.</span><span class="n">bytes</span><span class="o">=</span><span class="mi">102400</span>
+<span class="n">socket</span><span class="p">.</span><span class="n">receive</span><span class="p">.</span><span class="n">buffer</span><span class="p">.</span><span class="n">bytes</span><span class="o">=</span><span class="mi">102400</span>
+<span class="n">socket</span><span class="p">.</span><span class="n">request</span><span class="p">.</span><span class="n">max</span><span class="p">.</span><span class="n">bytes</span><span class="o">=</span><span class="mi">104857600</span>
+<span class="n">log</span><span class="p">.</span><span class="n">dirs</span><span class="o">=/</span><span class="n">data</span><span class="o">/</span><span class="n">kafka</span><span class="o">-</span><span class="n">logs</span> <span class="err">#</span> <span class="err">消息存储路径</span>
+<span class="n">num</span><span class="p">.</span><span class="n">partitions</span><span class="o">=</span><span class="mi">3</span>
+<span class="n">num</span><span class="p">.</span><span class="n">recovery</span><span class="p">.</span><span class="n">threads</span><span class="p">.</span><span class="n">per</span><span class="p">.</span><span class="n">data</span><span class="p">.</span><span class="n">dir</span><span class="o">=</span><span class="mi">1</span>
+<span class="n">log</span><span class="p">.</span><span class="n">retention</span><span class="p">.</span><span class="n">hours</span><span class="o">=</span><span class="mi">72</span>
+<span class="n">log</span><span class="p">.</span><span class="n">segment</span><span class="p">.</span><span class="n">bytes</span><span class="o">=</span><span class="mi">1073741824</span>
+<span class="n">log</span><span class="p">.</span><span class="n">retention</span><span class="p">.</span><span class="n">check</span><span class="p">.</span><span class="n">interval</span><span class="p">.</span><span class="n">ms</span><span class="o">=</span><span class="mi">300000</span>
+<span class="n">zookeeper</span><span class="p">.</span><span class="n">connect</span><span class="o">=</span><span class="mf">192.168.1.1</span><span class="o">:</span><span class="mi">2181</span><span class="p">,</span><span class="mf">192.168.1.2</span><span class="o">:</span><span class="mi">2181</span><span class="p">,</span><span class="mf">192.168.1.3</span><span class="o">:</span><span class="mi">2181</span>
+<span class="n">zookeeper</span><span class="p">.</span><span class="n">connection</span><span class="p">.</span><span class="n">timeout</span><span class="p">.</span><span class="n">ms</span><span class="o">=</span><span class="mi">6000</span>
+</pre></div>
+
+
+<blockquote>
+<p>启动</p>
+</blockquote>
+<div class="hlcode"><pre><span class="p">.</span><span class="o">/</span><span class="n">kafka</span><span class="o">-</span><span class="n">server</span><span class="o">-</span><span class="n">start</span><span class="p">.</span><span class="n">sh</span> <span class="o">-</span><span class="n">daemon</span> <span class="p">..</span><span class="o">/</span><span class="n">config</span><span class="o">/</span><span class="n">server</span><span class="p">.</span><span class="n">properties</span>
+</pre></div>
+
+
+<h3 id="34-kafka">3.4 Kafka的内外网流量分离</h3>
+<p>​    在Kafka实际使用过程中，有时候需要走公网生产消息，但是消费者是在内网。这时候如果流量全部走公网，除了带宽限制也会增加一部分流量成本。这时候需要配置外网流量走外网地址，内网走内网地址。Kafka服务器需要2张网卡或者使用云服务的弹性IP。这里以云服务器的弹性IP为例，修改配置如下：</p>
+<div class="hlcode"><pre><span class="n">listener</span><span class="p">.</span><span class="n">security</span><span class="p">.</span><span class="n">protocol</span><span class="p">.</span><span class="n">map</span><span class="o">=</span><span class="n">CLIENT</span><span class="o">:</span><span class="n">PLAINTEXT</span><span class="p">,</span><span class="n">REPLICATION</span><span class="o">:</span><span class="n">PLAINTEXT</span>
+<span class="n">advertised</span><span class="p">.</span><span class="n">listeners</span><span class="o">=</span><span class="n">CLIENT</span><span class="o">:</span><span class="c1">//192.33.10.241:9092,REPLICATION://120.13.81.201:19092</span>
+<span class="n">listeners</span><span class="o">=</span><span class="n">CLIENT</span><span class="o">:</span><span class="c1">//0.0.0.0:9092,REPLICATION://0.0.0.0:19092</span>
+<span class="n">inter</span><span class="p">.</span><span class="n">broker</span><span class="p">.</span><span class="n">listener</span><span class="p">.</span><span class="n">name</span><span class="o">=</span><span class="n">REPLICATION</span>
+</pre></div>
+
+
+<h2 id="kafka_3">四、 Kafka常见问答</h2>
+<blockquote>
+<p>1.kafka节点之间如何复制备份的？</p>
+</blockquote>
+<p>​    一个备份数量为n的集群允许n-1个节点失败。在所有备份节点中，有一个节点作为lead节点，这个节点保存了其它备份节点列表，并维持各个备份间的状体同步。</p>
+<p>​    Leader处理此分区的所有的读写请求，而follower被动的复制数据。（所有的写都发给leader, 然后leader将消息发给follower。）</p>
+<blockquote>
+<p>2.kafka消息是否会丢失？为什么？</p>
+</blockquote>
+<p>​    通过request.required.acks属性进行配置： </p>
+<p>​      0代表：不进行消息接收是否成功的确认(默认值)；</p>
+<p>​      1代表：当Leader副本接收成功后，返回接收成功确认信息；</p>
+<p>​      -1代表：当Leader和Follower副本都接收成功后，返回接收成功确认信息。</p>
+<p>想要更高的吞吐量就设置：异步、ack=0；想要不丢失消息数据就选：同步、ack=-1策略</p>
+<blockquote>
+<p>3.kafka的leader选举机制是什么？</p>
+</blockquote>
+<p>​    Kafka会在Zookeeper上针对每个Topic维护一个称为ISR。如果某个分区的Leader不可用，Kafka就会从ISR集合中选择一个副本作为新的Leader。</p>
+<blockquote>
+<p>4.如果所有的ISR副本都失败了怎么办？</p>
+</blockquote>
+<p>​    此时有两种方法可选，一种是等待ISR集合中的副本复活，一种是选择任何一个立即可用的副本，而这个副本不一定是在ISR集合中。这两种方法各有利弊，实际生产中按需选择。</p>
+<p>如果要等待ISR副本复活，虽然可以保证一致性，但可能需要很长时间。而如果选择立即可用的副本，则很可能该副本并不一致。</p>
+<blockquote>
+<p>5.kafka对硬件的配置有什么要求？</p>
+</blockquote>
+<p>​    网络吞吐量决定了Kafka能够处理的最大数据流量。它和磁盘存储是制约Kafka扩展规模的主要因素。</p>
+<blockquote>
+<p>6.kafka的消息保证有几种方式？</p>
+</blockquote>
+<p>​    同步和异步。</p>
+<h2 id="_2">五、附录</h2>
 <blockquote>
 <p>Kafka教程</p>
 </blockquote>
@@ -107,7 +225,7 @@
 <blockquote>
 <p>Kafka Manager</p>
 </blockquote>
-<p>https://github.com/yahoo/kafka-manager</p>
+<p><a href="https://github.com/yahoo/kafka-manager">https://github.com/yahoo/kafka-manager</a></p>
 <blockquote>
 <p>Kafka技术分享目录索引</p>
 </blockquote>
@@ -117,7 +235,7 @@
       <span>
         <p>Copyright © 2019 Lorryrui.
         Powered by <a href="http://simiki.org/" target="_blank">Simiki</a>.</p>
-        <p>Site Generated 2019-04-05 11:30:24</p>
+        <p>Site Generated 2019-06-04 09:40:41</p>
       </span>
     </div>
 
