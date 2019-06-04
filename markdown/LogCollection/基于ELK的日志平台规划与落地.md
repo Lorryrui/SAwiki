@@ -2,7 +2,7 @@
 title: "ELK Stack"
 layout: page
 date: 2019-03-02 11:00
-tag: ELK
+tag: LogCollection
 ---
 
 # ELK Stack Introduction

@@ -1,8 +1,8 @@
 ---
-title: "ELK Stack"
+title: "Elastcisearch backups/restore"
 layout: page
 date: 2019-03-19 18:12
-tag: Elastcisearch backups/restore
+tag: LogCollection
 ---
 
 # Elastcisearch数据备份与恢复
