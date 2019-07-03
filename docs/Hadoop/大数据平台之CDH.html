@@ -1,0 +1,192 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <link rel="Stylesheet" type="text/css" href="/SAwiki/static/css/style.css">
+    <link rel="Stylesheet" type="text/css" href="/SAwiki/static/css/tango.css">
+    <link rel="shortcut icon" href="/SAwiki/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/SAwiki/favicon.ico" type="image/x-icon">
+    <link rel="alternate" type="application/atom+xml" href="atom.xml" title="Atom feed">
+    <title>CDH - SA Reference</title>
+    <meta name="keywords" content="SA"/>
+    <meta name="description" content="SAwiki is a simple static site for SA Engineer."/>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  </head>
+
+  <body>
+    <div id="container">
+      
+<div id="header">
+  <div class="post-nav"><a href="/SAwiki/">Home</a>&nbsp;&#187;&nbsp;<a href="/SAwiki/#Hadoop">Hadoop</a>&nbsp;&#187;&nbsp;CDH
+    <span class="updated">Page Updated&nbsp;
+      2019-06-04 09:38
+    </span></div>
+</div>
+<div class="clearfix"></div>
+
+<div class="page_title">CDH</div>
+
+  <h1 id="cdh-installation">CDH Installation</h1>
+<h2 id="_1">一、简介</h2>
+<p>​    Cloudera版本（Cloudera’s Distribution Including Apache Hadoop，简称“CDH”），基于Web的用户界面,支持大多数Hadoop组件，包括HDFS、MapReduce、Hive、Pig、 Hbase、Zookeeper、Sqoop,简化了大数据平台的安装、使用难度。</p>
+<h2 id="_2">二、组件介绍</h2>
+<p>​    CDH安装后部分组件介绍：</p>
+<blockquote>
+<p>HDFS</p>
+</blockquote>
+<p>​    Hadoop分布式文件系统，用于存储大规模的数据文件。</p>
+<blockquote>
+<p>Hbase</p>
+</blockquote>
+<p>​    分布式列式数据库，存储非结构化的数据。</p>
+<blockquote>
+<p>Hive</p>
+</blockquote>
+<p>​    基于Hadoop的一个数据仓库工具，可以将结构化的数据文件映射为一张数据库表。</p>
+<blockquote>
+<p>Oozie</p>
+</blockquote>
+<p>​    Hadoop中的工作流调度系统，主要目的是为了管理不同类型的作业在Hadoop系统中处理。</p>
+<blockquote>
+<p>Sqoop</p>
+</blockquote>
+<p>​    一款开源工具。用于在Hadoop(Hive)与传统的数据库(mysql、postgresql...)间进行数据的传递，可以将一个关系型数据库（例如 ： MySQL ,Oracle ,Postgres等）中的数据导进到Hadoop的HDFS中，也可以将HDFS的数据导进到关系型数据库中。</p>
+<h2 id="_3">三、安装部署</h2>
+<h3 id="31">3.1 集群说明</h3>
+<p>​    四台机器（CentOS Linux release 7.4）部署CDH 6.1.1集群，其中一台是管理节点。服务器信息如下： </p>
+<div class="hlcode"><pre><span class="mf">192.168.208.2</span>  <span class="n">hadoop</span><span class="o">-</span><span class="mo">01</span>
+<span class="mf">192.168.208.3</span>  <span class="n">hadoop</span><span class="o">-</span><span class="mo">02</span>
+<span class="mf">192.168.208.4</span>  <span class="n">hadoop</span><span class="o">-</span><span class="mo">03</span>
+<span class="mf">192.168.89.47</span>  <span class="n">cm</span><span class="o">-</span><span class="n">server</span><span class="o">-</span><span class="n">M</span>
+</pre></div>
+
+
+<h3 id="32">3.2 服务器初始化配置</h3>
+<h4 id="321">3.2.1 主机名修改</h4>
+<p>​    hostnamectl set-hostname hadoop-01</p>
+<h4 id="322-etchosts">3.2.2 /etc/hosts</h4>
+<div class="hlcode"><pre><span class="mf">192.168.208.2</span>  <span class="n">hadoop</span><span class="o">-</span><span class="mo">01</span>
+<span class="mf">192.168.208.3</span>  <span class="n">hadoop</span><span class="o">-</span><span class="mo">02</span>
+<span class="mf">192.168.208.4</span>  <span class="n">hadoop</span><span class="o">-</span><span class="mo">03</span>
+<span class="mf">192.168.89.47</span>  <span class="n">cm</span><span class="o">-</span><span class="n">server</span><span class="o">-</span><span class="n">M</span>
+</pre></div>
+
+
+<h4 id="323-hadoop">3.2.3 新增hadoop用户</h4>
+<p>​    增加hadoop用户，并添加到/etc/sudoers。</p>
+<p>​        echo 'hadoop  ALL=(ALL)    NOPASSWD: ALL' &gt;&gt; /etc/sudoers</p>
+<p>​    禁用root用户登录，配置CM节点以hadoop用户SSH免密登录其他服务器。</p>
+<p>​        /home/hadoop/.ssh/authorized_keys 增加CM服务器公钥。</p>
+<h4 id="324">3.2.4 配置时钟同步</h4>
+<p>​    yum -y install ntp；systemctl restart ntpd；systemctl enable ntpd.service</p>
+<h4 id="325-java">3.2.5 JAVA环境</h4>
+<p>​    卸载系统中存在的JAVA环境；yum install oracle-j2sdk1.8</p>
+<h4 id="326">3.2.6 操作系统配置调整</h4>
+<div class="hlcode"><pre><span class="n">echo</span> <span class="s">&quot;* soft nofile 65535&quot;</span>  <span class="o">&gt;&gt;</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">security</span><span class="o">/</span><span class="n">limits</span><span class="p">.</span><span class="n">conf</span>
+<span class="n">echo</span> <span class="s">&quot;* hard nofile 65535&quot;</span>  <span class="o">&gt;&gt;</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">security</span><span class="o">/</span><span class="n">limits</span><span class="p">.</span><span class="n">conf</span>
+<span class="n">echo</span> <span class="s">&quot;fs.file-max = 6553560&quot;</span> <span class="o">&gt;&gt;</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">sysctl</span><span class="p">.</span><span class="n">conf</span>
+<span class="n">echo</span> <span class="s">&quot;vm.swappiness=10&quot;</span> <span class="o">&gt;&gt;/</span><span class="n">etc</span><span class="o">/</span><span class="n">sysctl</span><span class="p">.</span><span class="n">conf</span>
+<span class="cp"># 下面两段同时写入/etc/rc.local</span>
+<span class="n">echo</span> <span class="n">never</span> <span class="o">&gt;</span> <span class="o">/</span><span class="n">sys</span><span class="o">/</span><span class="n">kernel</span><span class="o">/</span><span class="n">mm</span><span class="o">/</span><span class="n">transparent_hugepage</span><span class="o">/</span><span class="n">defrag</span>
+<span class="n">echo</span> <span class="n">never</span> <span class="o">&gt;</span> <span class="o">/</span><span class="n">sys</span><span class="o">/</span><span class="n">kernel</span><span class="o">/</span><span class="n">mm</span><span class="o">/</span><span class="n">transparent_hugepage</span><span class="o">/</span><span class="n">enabled</span>
+</pre></div>
+
+
+<h4 id="327-selinux">3.2.7 关闭防火墙、SElinux</h4>
+<h4 id="328">3.2.8 重启服务器</h4>
+<p>​    重启服务器，同时验证以上调整是否生效。</p>
+<h3 id="33-cloudera-manager">3.3  Cloudera Manager安装</h3>
+<p>​     Cloudera Manager是CDH集群安装管理的可视化工具。通过安装CM工具，可视化的安装、维护CDH提供的相关组件。</p>
+<h4 id="331-yum">3.3.1 配置yum源</h4>
+<blockquote>
+<p><a href="https://www.cloudera.com/documentation/enterprise/6/6.1/topics/configure_cm_repo.html#cm_repo">https://www.cloudera.com/documentation/enterprise/6/6.1/topics/configure_cm_repo.html#cm_repo</a></p>
+</blockquote>
+<div class="hlcode"><pre><span class="n">wget</span> <span class="n">https</span><span class="o">:</span><span class="c1">//archive.cloudera.com/cm6/6.1.1/redhat7/yum/cloudera-manager.repo -P /etc/yum.repos.d/</span>
+<span class="n">rpm</span> <span class="o">--</span><span class="n">import</span> <span class="n">https</span><span class="o">:</span><span class="c1">//archive.cloudera.com/cm6/6.1.0/redhat7/yum/RPM-GPG-KEY-cloudera</span>
+</pre></div>
+
+
+<h4 id="332-cm-server">3.3.2 安装CM Server</h4>
+<div class="hlcode"><pre><span class="n">yum</span> <span class="n">install</span> <span class="n">cloudera</span><span class="o">-</span><span class="n">manager</span><span class="o">-</span><span class="n">daemons</span> <span class="n">cloudera</span><span class="o">-</span><span class="n">manager</span><span class="o">-</span><span class="n">agent</span> <span class="n">cloudera</span><span class="o">-</span><span class="n">manager</span><span class="o">-</span><span class="n">server</span> <span class="o">-</span><span class="n">y</span>
+</pre></div>
+
+
+<h4 id="333">3.3.3 安装数据库</h4>
+<blockquote>
+<p><a href="https://www.cloudera.com/documentation/enterprise/6/6.1/topics/cm_ig_mysql.html">https://www.cloudera.com/documentation/enterprise/6/6.1/topics/cm_ig_mysql.html</a></p>
+</blockquote>
+<p>​    数据库用于存储一些组件的信息，这里使用MySQL 5.6。CM要求数据库字符集必须是utf8。</p>
+<h4 id="334-mysql">3.3.4 安装MySQL驱动</h4>
+<blockquote>
+<p><a href="https://www.cloudera.com/documentation/enterprise/6/6.1/topics/cm_ig_mysql.html#cmig_topic_5_5_3">https://www.cloudera.com/documentation/enterprise/6/6.1/topics/cm_ig_mysql.html#cmig_topic_5_5_3</a></p>
+</blockquote>
+<p>​    所有节点上均需要安装MySQL驱动：</p>
+<div class="hlcode"><pre><span class="n">wget</span> <span class="n">https</span><span class="o">:</span><span class="c1">//dev.mysql.com/get/Downloads/Connector-J/mysql-connector-java-5.1.46.tar.gz</span>
+<span class="n">tar</span> <span class="n">zxvf</span> <span class="n">mysql</span><span class="o">-</span><span class="n">connector</span><span class="o">-</span><span class="n">java</span><span class="o">-</span><span class="mf">5.1.46</span><span class="p">.</span><span class="n">tar</span><span class="p">.</span><span class="n">gz</span>
+<span class="n">sudo</span> <span class="n">mkdir</span> <span class="o">-</span><span class="n">p</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">share</span><span class="o">/</span><span class="n">java</span><span class="o">/</span>
+<span class="n">cd</span> <span class="n">mysql</span><span class="o">-</span><span class="n">connector</span><span class="o">-</span><span class="n">java</span><span class="o">-</span><span class="mf">5.1.46</span>
+<span class="n">sudo</span> <span class="n">cp</span> <span class="n">mysql</span><span class="o">-</span><span class="n">connector</span><span class="o">-</span><span class="n">java</span><span class="o">-</span><span class="mf">5.1.46</span><span class="o">-</span><span class="n">bin</span><span class="p">.</span><span class="n">jar</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">share</span><span class="o">/</span><span class="n">java</span><span class="o">/</span><span class="n">mysql</span><span class="o">-</span><span class="n">connector</span><span class="o">-</span><span class="n">java</span><span class="p">.</span><span class="n">jar</span>
+</pre></div>
+
+
+<h4 id="335">3.3.5 创建数据库及用户</h4>
+<p>​    CM将不同的组件信息存储在不同的数据库中，建立相关的库和用户：</p>
+<div class="hlcode"><pre><span class="n">CREATE</span> <span class="n">DATABASE</span> <span class="n">scm</span> <span class="n">DEFAULT</span> <span class="n">CHARACTER</span> <span class="n">SET</span> <span class="n">utf8</span> <span class="n">DEFAULT</span> <span class="n">COLLATE</span> <span class="n">utf8_general_ci</span><span class="p">;</span>
+<span class="n">GRANT</span> <span class="n">ALL</span> <span class="n">ON</span> <span class="n">scm</span><span class="p">.</span><span class="o">*</span> <span class="n">TO</span> <span class="err">&#39;</span><span class="n">scm</span><span class="sc">&#39;@&#39;</span><span class="o">%</span><span class="err">&#39;</span> <span class="n">IDENTIFIED</span> <span class="n">BY</span> <span class="err">&#39;</span><span class="n">scm</span><span class="err">&#39;</span><span class="p">;</span>
+<span class="n">CREATE</span> <span class="n">DATABASE</span> <span class="n">amon</span> <span class="n">DEFAULT</span> <span class="n">CHARACTER</span> <span class="n">SET</span> <span class="n">utf8</span> <span class="n">DEFAULT</span> <span class="n">COLLATE</span> <span class="n">utf8_general_ci</span><span class="p">;</span>
+<span class="n">GRANT</span> <span class="n">ALL</span> <span class="n">ON</span> <span class="n">amon</span><span class="p">.</span><span class="o">*</span> <span class="n">TO</span> <span class="err">&#39;</span><span class="n">amon</span><span class="sc">&#39;@&#39;</span><span class="o">%</span><span class="err">&#39;</span> <span class="n">IDENTIFIED</span> <span class="n">BY</span> <span class="err">&#39;</span><span class="n">amon</span><span class="err">&#39;</span><span class="p">;</span>
+<span class="n">CREATE</span> <span class="n">DATABASE</span> <span class="n">rman</span> <span class="n">DEFAULT</span> <span class="n">CHARACTER</span> <span class="n">SET</span> <span class="n">utf8</span> <span class="n">DEFAULT</span> <span class="n">COLLATE</span> <span class="n">utf8_general_ci</span><span class="p">;</span>
+<span class="n">GRANT</span> <span class="n">ALL</span> <span class="n">ON</span> <span class="n">rman</span><span class="p">.</span><span class="o">*</span> <span class="n">TO</span> <span class="err">&#39;</span><span class="n">rman</span><span class="sc">&#39;@&#39;</span><span class="o">%</span><span class="err">&#39;</span> <span class="n">IDENTIFIED</span> <span class="n">BY</span> <span class="err">&#39;</span><span class="n">rman</span><span class="err">&#39;</span><span class="p">;</span>
+<span class="n">CREATE</span> <span class="n">DATABASE</span> <span class="n">hue</span> <span class="n">DEFAULT</span> <span class="n">CHARACTER</span> <span class="n">SET</span> <span class="n">utf8</span> <span class="n">DEFAULT</span> <span class="n">COLLATE</span> <span class="n">utf8_general_ci</span><span class="p">;</span>
+<span class="n">GRANT</span> <span class="n">ALL</span> <span class="n">ON</span> <span class="n">hue</span><span class="p">.</span><span class="o">*</span> <span class="n">TO</span> <span class="err">&#39;</span><span class="n">hue</span><span class="sc">&#39;@&#39;</span><span class="o">%</span><span class="err">&#39;</span> <span class="n">IDENTIFIED</span> <span class="n">BY</span> <span class="err">&#39;</span><span class="n">hue</span><span class="err">&#39;</span><span class="p">;</span>
+<span class="n">CREATE</span> <span class="n">DATABASE</span> <span class="n">metastore</span> <span class="n">DEFAULT</span> <span class="n">CHARACTER</span> <span class="n">SET</span> <span class="n">utf8</span> <span class="n">DEFAULT</span> <span class="n">COLLATE</span> <span class="n">utf8_general_ci</span><span class="p">;</span>
+<span class="n">GRANT</span> <span class="n">ALL</span> <span class="n">ON</span> <span class="n">metastore</span><span class="p">.</span><span class="o">*</span> <span class="n">TO</span> <span class="err">&#39;</span><span class="n">hive</span><span class="sc">&#39;@&#39;</span><span class="o">%</span><span class="err">&#39;</span> <span class="n">IDENTIFIED</span> <span class="n">BY</span> <span class="err">&#39;</span><span class="n">hive</span><span class="err">&#39;</span><span class="p">;</span>
+<span class="n">CREATE</span> <span class="n">DATABASE</span> <span class="n">sentry</span> <span class="n">DEFAULT</span> <span class="n">CHARACTER</span> <span class="n">SET</span> <span class="n">utf8</span> <span class="n">DEFAULT</span> <span class="n">COLLATE</span> <span class="n">utf8_general_ci</span><span class="p">;</span>
+<span class="n">GRANT</span> <span class="n">ALL</span> <span class="n">ON</span> <span class="n">sentry</span><span class="p">.</span><span class="o">*</span> <span class="n">TO</span> <span class="err">&#39;</span><span class="n">sentry</span><span class="sc">&#39;@&#39;</span><span class="o">%</span><span class="err">&#39;</span> <span class="n">IDENTIFIED</span> <span class="n">BY</span> <span class="err">&#39;</span><span class="n">sentry</span><span class="err">&#39;</span><span class="p">;</span>
+<span class="n">CREATE</span> <span class="n">DATABASE</span> <span class="n">nav</span> <span class="n">DEFAULT</span> <span class="n">CHARACTER</span> <span class="n">SET</span> <span class="n">utf8</span> <span class="n">DEFAULT</span> <span class="n">COLLATE</span> <span class="n">utf8_general_ci</span><span class="p">;</span>
+<span class="n">GRANT</span> <span class="n">ALL</span> <span class="n">ON</span> <span class="n">nav</span><span class="p">.</span><span class="o">*</span> <span class="n">TO</span> <span class="err">&#39;</span><span class="n">nav</span><span class="sc">&#39;@&#39;</span><span class="o">%</span><span class="err">&#39;</span> <span class="n">IDENTIFIED</span> <span class="n">BY</span> <span class="err">&#39;</span><span class="n">nav</span><span class="err">&#39;</span><span class="p">;</span>
+<span class="n">CREATE</span> <span class="n">DATABASE</span> <span class="n">navms</span> <span class="n">DEFAULT</span> <span class="n">CHARACTER</span> <span class="n">SET</span> <span class="n">utf8</span> <span class="n">DEFAULT</span> <span class="n">COLLATE</span> <span class="n">utf8_general_ci</span><span class="p">;</span>
+<span class="n">GRANT</span> <span class="n">ALL</span> <span class="n">ON</span> <span class="n">navms</span><span class="p">.</span><span class="o">*</span> <span class="n">TO</span> <span class="err">&#39;</span><span class="n">navms</span><span class="sc">&#39;@&#39;</span><span class="o">%</span><span class="err">&#39;</span> <span class="n">IDENTIFIED</span> <span class="n">BY</span> <span class="err">&#39;</span><span class="n">navms</span><span class="err">&#39;</span><span class="p">;</span>
+<span class="n">CREATE</span> <span class="n">DATABASE</span> <span class="n">oozie</span> <span class="n">DEFAULT</span> <span class="n">CHARACTER</span> <span class="n">SET</span> <span class="n">utf8</span> <span class="n">DEFAULT</span> <span class="n">COLLATE</span> <span class="n">utf8_general_ci</span><span class="p">;</span>
+<span class="n">GRANT</span> <span class="n">ALL</span> <span class="n">ON</span> <span class="n">oozie</span><span class="p">.</span><span class="o">*</span> <span class="n">TO</span> <span class="err">&#39;</span><span class="n">oozie</span><span class="sc">&#39;@&#39;</span><span class="o">%</span><span class="err">&#39;</span> <span class="n">IDENTIFIED</span> <span class="n">BY</span> <span class="err">&#39;</span><span class="n">oozie</span><span class="err">&#39;</span><span class="p">;</span>
+<span class="n">flush</span> <span class="n">privileges</span><span class="p">;</span>
+</pre></div>
+
+
+<h4 id="336-cloudera">3.3.6 Cloudera初始化脚本</h4>
+<p>​    运行下面的脚本，告诉cloudera 你建立的数据库用户密码等信息：</p>
+<div class="hlcode"><pre><span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">cloudera</span><span class="o">/</span><span class="n">cm</span><span class="o">/</span><span class="n">schema</span><span class="o">/</span><span class="n">scm_prepare_database</span><span class="p">.</span><span class="n">sh</span> <span class="n">mysql</span> <span class="n">scm</span> <span class="n">scm</span> <span class="n">scm</span>
+<span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">cloudera</span><span class="o">/</span><span class="n">cm</span><span class="o">/</span><span class="n">schema</span><span class="o">/</span><span class="n">scm_prepare_database</span><span class="p">.</span><span class="n">sh</span> <span class="n">mysql</span> <span class="n">amon</span> <span class="n">amon</span> <span class="n">amon</span>
+<span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">cloudera</span><span class="o">/</span><span class="n">cm</span><span class="o">/</span><span class="n">schema</span><span class="o">/</span><span class="n">scm_prepare_database</span><span class="p">.</span><span class="n">sh</span> <span class="n">mysql</span> <span class="n">rman</span> <span class="n">rman</span> <span class="n">rman</span>
+<span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">cloudera</span><span class="o">/</span><span class="n">cm</span><span class="o">/</span><span class="n">schema</span><span class="o">/</span><span class="n">scm_prepare_database</span><span class="p">.</span><span class="n">sh</span> <span class="n">mysql</span> <span class="n">hue</span> <span class="n">hue</span> <span class="n">hue</span>
+<span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">cloudera</span><span class="o">/</span><span class="n">cm</span><span class="o">/</span><span class="n">schema</span><span class="o">/</span><span class="n">scm_prepare_database</span><span class="p">.</span><span class="n">sh</span> <span class="n">mysql</span> <span class="n">sentry</span> <span class="n">sentry</span> <span class="n">sentry</span>
+<span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">cloudera</span><span class="o">/</span><span class="n">cm</span><span class="o">/</span><span class="n">schema</span><span class="o">/</span><span class="n">scm_prepare_database</span><span class="p">.</span><span class="n">sh</span> <span class="n">mysql</span> <span class="n">nav</span> <span class="n">nav</span> <span class="n">nav</span>
+<span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">cloudera</span><span class="o">/</span><span class="n">cm</span><span class="o">/</span><span class="n">schema</span><span class="o">/</span><span class="n">scm_prepare_database</span><span class="p">.</span><span class="n">sh</span> <span class="n">mysql</span> <span class="n">navms</span> <span class="n">navms</span> <span class="n">navms</span>
+<span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">cloudera</span><span class="o">/</span><span class="n">cm</span><span class="o">/</span><span class="n">schema</span><span class="o">/</span><span class="n">scm_prepare_database</span><span class="p">.</span><span class="n">sh</span> <span class="n">mysql</span> <span class="n">oozie</span> <span class="n">oozie</span> <span class="n">oozie</span>
+</pre></div>
+
+
+<h3 id="_4">四、集群设置</h3>
+<p>​    systemctl restart cloudera-scm-server 重启CM服务端，等待1-2分钟打开链接 http://<cm_server>:7180进入WEB界面化配置CDH集群。根据需要选择需要添加的组件以及组件所在的节点。</p>
+<p>​    ps：注意使用hadoop用户SSH连接其他节点。</p>
+<h3 id="_5">五、报错说明</h3>
+<h4 id="51-java">5.1 JAVA环境报错</h4>
+<p>​    使用官方推荐的：yum -y install oracle-j2sdk1.8</p>
+<h4 id="52-oozie-web-uijsp">5.2 Oozie Web UI报jsp错误</h4>
+<div class="hlcode"><pre><span class="n">cd</span> <span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">cloudera</span><span class="o">/</span><span class="n">parcels</span><span class="o">/</span><span class="n">CDH</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">oozie</span><span class="o">/</span><span class="n">embedded</span><span class="o">-</span><span class="n">oozie</span><span class="o">-</span><span class="n">server</span><span class="o">/</span><span class="n">dependency</span>
+<span class="n">unlink</span> <span class="n">jetty</span><span class="o">-</span><span class="n">runner</span><span class="o">-</span><span class="mf">9.3.20</span><span class="p">.</span><span class="n">v20170531</span><span class="p">.</span><span class="n">jar</span>
+<span class="n">unlink</span> <span class="n">javax</span><span class="p">.</span><span class="n">servlet</span><span class="p">.</span><span class="n">jsp</span><span class="o">-</span><span class="n">api</span><span class="o">-</span><span class="mf">2.3.1</span><span class="p">.</span><span class="n">jar</span>
+<span class="n">unlink</span> <span class="n">javax</span><span class="p">.</span><span class="n">servlet</span><span class="p">.</span><span class="n">jsp</span><span class="o">-</span><span class="mf">2.3.2</span><span class="p">.</span><span class="n">jar</span>
+</pre></div>
+    </div>
+    <div id="footer">
+      <span>
+        <p>Copyright © 2019 Lorryrui.
+        Powered by <a href="http://simiki.org/" target="_blank">Simiki</a>.</p>
+        <p>Site Generated 2019-07-03 15:41:17</p>
+      </span>
+    </div>
+
+    
+    
+  </body>
+</html>
