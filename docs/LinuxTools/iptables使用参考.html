@@ -1,0 +1,106 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <link rel="Stylesheet" type="text/css" href="/SAwiki/static/css/style.css">
+    <link rel="Stylesheet" type="text/css" href="/SAwiki/static/css/tango.css">
+    <link rel="shortcut icon" href="/SAwiki/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/SAwiki/favicon.ico" type="image/x-icon">
+    <link rel="alternate" type="application/atom+xml" href="atom.xml" title="Atom feed">
+    <title>iptables - SA Reference</title>
+    <meta name="keywords" content="SA"/>
+    <meta name="description" content="SAwiki is a simple static site for SA Engineer."/>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  </head>
+
+  <body>
+    <div id="container">
+      
+<div id="header">
+  <div class="post-nav"><a href="/SAwiki/">Home</a>&nbsp;&#187;&nbsp;<a href="/SAwiki/#LinuxTools">LinuxTools</a>&nbsp;&#187;&nbsp;iptables
+    <span class="updated">Page Updated&nbsp;
+      2019-07-04 08:42
+    </span></div>
+</div>
+<div class="clearfix"></div>
+
+<div class="page_title">iptables</div>
+
+  <h1 id="iptables">iptables使用参考</h1>
+<h2 id="_1">一、简介</h2>
+<p>​    netfilter/iptables组成Linux平台下的包过滤防火墙 ，完成 封包过滤、封包重定向、网络地址转换NAT 等功能。iptables可以看做是客户端代理，通过它设定规则，netfilter是位于内核空间的真正的防火墙。</p>
+<blockquote>
+<p><a href="https://wiki.archlinux.org/index.php/Iptables_(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87)">https://wiki.archlinux.org/index.php/Iptables_(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87)</a></p>
+</blockquote>
+<p>​    这里记录常用的部分。</p>
+<h2 id="_2">二、安装与使用</h2>
+<h3 id="21">2.1 安装</h3>
+<p>​    CentOS7需要卸载系统自带的firewall：</p>
+<div class="hlcode"><pre><span class="n">systemctl</span> <span class="n">stop</span> <span class="n">firewalld</span><span class="p">.</span><span class="n">service</span>
+<span class="n">systemctl</span> <span class="n">disable</span> <span class="n">firewalld</span><span class="p">.</span><span class="n">service</span>
+</pre></div>
+
+
+<p>​    安装iptables：</p>
+<div class="hlcode"><pre><span class="n">yum</span> <span class="n">install</span> <span class="n">iptables</span><span class="o">-</span><span class="n">services</span> <span class="n">iptables</span> <span class="o">-</span><span class="n">y</span>
+</pre></div>
+
+
+<h3 id="22">2.2 常用部分</h3>
+<h4 id="221-input">2.2.1 INPUT（入站规则）</h4>
+<div class="hlcode"><pre><span class="cp"># 查看当前规则</span>
+<span class="n">iptables</span> <span class="o">-</span><span class="n">nL</span>
+<span class="cp"># 所有入站请求TCP对当前IP开放</span>
+<span class="n">iptables</span> <span class="o">-</span><span class="n">A</span> <span class="n">INPUT</span> <span class="o">-</span><span class="n">p</span> <span class="n">tcp</span> <span class="o">-</span><span class="n">s</span> <span class="mf">192.168.45.193</span> <span class="o">-</span><span class="n">j</span> <span class="n">ACCEPT</span>
+<span class="cp"># 默认入站deny，需要开通白名单</span>
+<span class="n">iptables</span> <span class="o">-</span><span class="n">P</span> <span class="n">INPUT</span> <span class="n">DROP</span>
+<span class="cp"># 指定IP访问指定端口</span>
+<span class="n">iptables</span> <span class="o">-</span><span class="n">A</span> <span class="n">INPUT</span> <span class="o">-</span><span class="n">p</span> <span class="n">tcp</span> <span class="o">--</span><span class="n">dport</span>  <span class="mi">9092</span>  <span class="o">-</span><span class="n">s</span> <span class="mf">192.168.26.135</span> <span class="o">-</span><span class="n">j</span> <span class="n">ACCEPT</span>
+<span class="cp"># 每次修改都需要保存规则，否则重启失效</span>
+<span class="n">service</span> <span class="n">iptables</span> <span class="n">save</span>
+</pre></div>
+
+
+<h4 id="222-output">2.2.2 OUTPUT（出站规则）</h4>
+<div class="hlcode"><pre><span class="cp"># 默认所有出站容许,如需要设置所有出站deny</span>
+<span class="n">iptables</span> <span class="o">-</span><span class="n">P</span> <span class="n">OUTPUT</span> <span class="n">DROP</span>
+<span class="cp"># 指定端口出站白名单</span>
+<span class="n">iptables</span> <span class="o">-</span><span class="n">A</span> <span class="n">OUTPUT</span> <span class="o">-</span><span class="n">p</span> <span class="n">udp</span> <span class="o">--</span><span class="n">sport</span> <span class="mi">53</span> <span class="o">-</span><span class="n">j</span> <span class="n">ACCEPT</span>
+<span class="cp"># 每次修改都需要保存规则，否则重启失效</span>
+<span class="n">service</span> <span class="n">iptables</span> <span class="n">save</span>
+</pre></div>
+
+
+<h4 id="223-forward">2.2.3 FORWARD（端口转发）</h4>
+<div class="hlcode"><pre><span class="cp"># 启用网卡转发</span>
+<span class="n">echo</span> <span class="mi">1</span> <span class="o">&gt;</span> <span class="o">/</span><span class="n">proc</span><span class="o">/</span><span class="n">sys</span><span class="o">/</span><span class="n">net</span><span class="o">/</span><span class="n">ipv4</span><span class="o">/</span><span class="n">ip_forward</span>
+<span class="cp"># 永久生效（/etc/sysctl.conf）; sysctl -p</span>
+<span class="n">net</span><span class="p">.</span><span class="n">ipv4</span><span class="p">.</span><span class="n">ip_forward</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="cp"># 端口转发</span>
+<span class="n">iptables</span> <span class="o">-</span><span class="n">t</span> <span class="n">nat</span> <span class="o">-</span><span class="n">A</span> <span class="n">PREROUTING</span> <span class="o">-</span><span class="n">p</span> <span class="n">tcp</span> <span class="o">-</span><span class="n">i</span> <span class="n">eth0</span> <span class="o">--</span><span class="n">dport</span> <span class="mi">23306</span> <span class="o">-</span><span class="n">j</span> <span class="n">DNAT</span> <span class="o">--</span><span class="n">to</span> <span class="mf">192.168.1.11</span><span class="o">:</span><span class="mi">3306</span>
+<span class="n">iptables</span> <span class="o">-</span><span class="n">t</span> <span class="n">nat</span> <span class="o">-</span><span class="n">A</span> <span class="n">POSTROUTING</span> <span class="o">-</span><span class="n">j</span> <span class="n">MASQUERADE</span>
+<span class="cp"># 每次修改都需要保存规则，否则重启失效</span>
+<span class="n">service</span> <span class="n">iptables</span> <span class="n">save</span>
+</pre></div>
+
+
+<h4 id="224">2.2.4 删除规则</h4>
+<div class="hlcode"><pre><span class="cp"># 列出规则</span>
+<span class="n">iptables</span> <span class="o">-</span><span class="n">L</span> <span class="o">-</span><span class="n">n</span> <span class="o">--</span><span class="n">line</span><span class="o">-</span><span class="n">number</span>
+<span class="cp"># 根据规则类型和序号删除相应规则</span>
+<span class="n">iptables</span> <span class="o">-</span><span class="n">D</span> <span class="n">OUTPUT</span> <span class="mi">1</span> 
+<span class="cp"># 每次修改都需要保存规则，否则重启失效</span>
+<span class="n">service</span> <span class="n">iptables</span> <span class="n">save</span>
+</pre></div>
+    </div>
+    <div id="footer">
+      <span>
+        <p>Copyright © 2019 Lorryrui.
+        Powered by <a href="http://simiki.org/" target="_blank">Simiki</a>.</p>
+        <p>Site Generated 2019-07-04 09:29:13</p>
+      </span>
+    </div>
+
+    
+    
+  </body>
+</html>
