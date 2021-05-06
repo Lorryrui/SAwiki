@@ -1,0 +1,387 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="zh-CN" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Helm基础与使用 &mdash; SAwiki v1.0 文档</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/translations.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="搜索" href="../search.html" />
+    <link rel="prev" title="Elasticsearch索引备份到HDFS" href="../LogCollection/Elasticsearch%20snapshot%28HDFS%29.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> SAwiki
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">LogCollection:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../LogCollection/Elasticsearch%20snapshot%28HDFS%29.html">Elasticsearch索引备份到HDFS</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Helm:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Helm基础与使用</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#id1">一、Helm是什么</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id2">二、为什么要使用Helm</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id3">三、如何使用Helm</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#chart">1、创建一个chart</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#k8syaml">2、K8S资源yaml描述文件编写</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#k8s">3、测试、打包、部署到K8S</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#helmphp">四、例子：使用Helm打包PHP应用</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">SAwiki</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Helm基础与使用</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/Helm/Helm.md.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="helm">
+<h1>Helm基础与使用<a class="headerlink" href="#helm" title="永久链接至标题">¶</a></h1>
+<div class="section" id="id1">
+<h2>一、Helm是什么<a class="headerlink" href="#id1" title="永久链接至标题">¶</a></h2>
+<blockquote>
+<div><p><em>Helm</em> Charts 帮助您定义、安装和升级最复杂的 Kubernetes 应用程序。</p>
+</div></blockquote>
+<p>​    Helm是运行在Kubernetes环境中的一个统一打包管理K8S资源的工具，类似于Linux包管理工具yum/apt。使用Helm可以对应用的configmap、service、deployment等一系列的K8S资源的创建和升级，将应用的一系列资源当做一个软件包管理。</p>
+<p>​    Helm主要有v2和v3两个版本，v2版本是C/S架构，由客户端组件 helm 和服务端组件 Tiller 组成；v3则直接通过K8S的ApiServer操作K8S资源。这里推荐直接使用v3版本。</p>
+</div>
+<div class="section" id="id2">
+<h2>二、为什么要使用Helm<a class="headerlink" href="#id2" title="永久链接至标题">¶</a></h2>
+<p>​    对K8S上的应用管理，一般以yaml文件描述然后部署。这个在生产环境中上线应用非常不方便，也不利用后期的管理和维护。Helm可以很好的描述一个K8S应用的各个资源如deployment、configmap之间的关系，并且可以通过模板化的管理一类应用。</p>
+<p>​    简单的说，Helm 可以很好的管理chart，具有版本管理，历史回溯，快速回滚功能，这个是简单的使用编排模板所不能比拟的。</p>
+</div>
+<div class="section" id="id3">
+<h2>三、如何使用Helm<a class="headerlink" href="#id3" title="永久链接至标题">¶</a></h2>
+<p>​    使用Helm之前先了解几个相关的概念：</p>
+<p><strong>helm</strong></p>
+<ul class="simple">
+<li><p>Helm     是一个命令行下的客户端工具。主要用于     Kubernetes 应用程序 Chart 的创建、打包、发布以及创建和管理本地和远程的     Chart 仓库。</p></li>
+</ul>
+<p><strong>Chart</strong></p>
+<ul class="simple">
+<li><p>Helm     的软件包，采用     TAR 格式。类似于 APT 的 DEB 包或者     YUM 的 RPM 包，其包含了一组定义 Kubernetes 资源相关的     YAML 文件。</p></li>
+</ul>
+<p><strong>Repoistory</strong></p>
+<ul class="simple">
+<li><p>Helm     的软件仓库，Repository     本质上是一个     Web 服务器，该服务器保存了一系列的 Chart 软件包以供用户下载，并且提供了一个该     Repository 的 Chart 包的清单文件以供查询。Helm     可以同时管理多个不同的     Repository。</p></li>
+</ul>
+<p><strong>Release</strong></p>
+<ul class="simple">
+<li><p>使用     helm install 命令在 Kubernetes 集群中部署的     Chart 称为 Release。可以理解为 Helm 使用     Chart 包部署的一个应用实例。</p></li>
+</ul>
+<div class="section" id="chart">
+<h3>1、创建一个chart<a class="headerlink" href="#chart" title="永久链接至标题">¶</a></h3>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>helm create myapp
+</pre></div>
+</div>
+<p>​    Chart.yaml     chart的一些描述，包括名称、版本号等</p>
+<p>​    values.yaml    参数值，提供给模版引用</p>
+<p>​    templates       模板文件目录。包括deployment、service、hpa等资源yaml描述</p>
+</div>
+<div class="section" id="k8syaml">
+<h3>2、K8S资源yaml描述文件编写<a class="headerlink" href="#k8syaml" title="永久链接至标题">¶</a></h3>
+<p>​    yaml格式格式和之前写的yaml文件类似，这里主要值使用变量进行填充。比如值直接引用：</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>app: <span class="o">{{</span> .Values.appname <span class="o">}}</span>
+</pre></div>
+</div>
+<p>​    循环的编写：</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="o">{{</span>- range .Values.configOverrides <span class="o">}}</span>
+  <span class="o">{{</span> . <span class="o">}}</span>: <span class="p">|</span>
+<span class="o">{{</span> $.Files.Get <span class="o">(</span><span class="nb">printf</span> <span class="s2">&quot;%s%s&quot;</span> <span class="s2">&quot;configs/&quot;</span> .<span class="o">)</span> <span class="p">|</span> indent <span class="m">4</span> <span class="o">}}</span>
+<span class="o">{{</span>- end <span class="o">}}</span>
+</pre></div>
+</div>
+<p>​    对于不同的K8S资源模版，存放在不同的文件名中。模版的值内容全部从    values.yaml  或者 Chart.yaml引入。</p>
+</div>
+<div class="section" id="k8s">
+<h3>3、测试、打包、部署到K8S<a class="headerlink" href="#k8s" title="永久链接至标题">¶</a></h3>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># 调试</span>
+
+helm install --debug --dry-run ./detailpage/ --generate-name
+
+<span class="c1"># 打包</span>
+
+helm package ./detailpage
+
+<span class="c1"># 安装</span>
+
+helm install detailpage --namespace webapp ./detailpage-0.1.0.tgz 
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="helmphp">
+<h2>四、例子：使用Helm打包PHP应用<a class="headerlink" href="#helmphp" title="永久链接至标题">¶</a></h2>
+<p>​    打包PHP应用（detailpage）主要有配置文件、程序Docker镜像两个部分。其中，配置文件使用configmap，程序使用deployment，暴露web端口使用service。</p>
+<p>detailpage/values.yaml</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># Default values for yxds.</span>
+<span class="c1"># This is a YAML-formatted file.</span>
+<span class="c1"># Declare variables to be passed into your templates.</span>
+
+<span class="nt">replicaCount</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>
+<span class="nt">namespace</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">webapp</span>
+
+<span class="nt">appname</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">detailpage</span>
+
+<span class="nt">image</span><span class="p">:</span>
+  <span class="nt">repository</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">my.com/webapp/detailpage</span>
+  <span class="nt">pullPolicy</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">IfNotPresent</span>
+  <span class="c1"># Overrides the image tag whose default is the chart appVersion.</span>
+  <span class="nt">tag</span><span class="p">:</span> <span class="s">&quot;v1&quot;</span>
+
+<span class="nt">containerPort</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">80</span>
+
+<span class="nt">imagePullSecrets</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">dockerkey</span>
+<span class="nt">nameOverride</span><span class="p">:</span> <span class="s">&quot;&quot;</span>
+<span class="nt">fullnameOverride</span><span class="p">:</span> <span class="s">&quot;&quot;</span>
+
+<span class="nt">podAnnotations</span><span class="p">:</span> <span class="p p-Indicator">{}</span>
+
+<span class="c1"># put your configfiles in configs/</span>
+<span class="nt">configOverrides</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">config.php</span>
+
+<span class="nt">service</span><span class="p">:</span>
+  <span class="nt">type</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ClusterIP</span>
+  <span class="nt">port</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">8100</span>
+  <span class="nt">targetPort</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">80</span>
+
+<span class="nt">autoscaling</span><span class="p">:</span>
+  <span class="nt">enabled</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">false</span>
+  <span class="nt">minReplicas</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>
+  <span class="nt">maxReplicas</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">5</span>
+  <span class="nt">targetCPUUtilizationPercentage</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">80</span>
+  <span class="nt">targetMemoryUtilizationPercentage</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">80</span>
+</pre></div>
+</div>
+<p>detailpage/templates/deployment.yaml</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">apps/v1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Deployment</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="p p-Indicator">{{</span> <span class="nv">.Values.appname</span> <span class="p p-Indicator">}}</span>
+  <span class="nt">namespace</span><span class="p">:</span> <span class="p p-Indicator">{{</span> <span class="nv">.Values.namespace</span> <span class="p p-Indicator">}}</span>
+<span class="nt">spec</span><span class="p">:</span>
+  <span class="nt">selector</span><span class="p">:</span>
+    <span class="nt">matchLabels</span><span class="p">:</span>
+      <span class="nt">app</span><span class="p">:</span> <span class="p p-Indicator">{{</span> <span class="nv">.Values.appname</span> <span class="p p-Indicator">}}</span>
+  <span class="nt">replicas</span><span class="p">:</span> <span class="p p-Indicator">{{</span> <span class="nv">.Values.replicaCount</span> <span class="p p-Indicator">}}</span>
+  <span class="nt">template</span><span class="p">:</span>
+    <span class="nt">metadata</span><span class="p">:</span>
+      <span class="nt">labels</span><span class="p">:</span>
+        <span class="nt">app</span><span class="p">:</span> <span class="p p-Indicator">{{</span> <span class="nv">.Values.appname</span> <span class="p p-Indicator">}}</span>  
+    <span class="nt">spec</span><span class="p">:</span>
+      <span class="p p-Indicator">{{</span><span class="nv">- with .Values.imagePullSecrets</span> <span class="p p-Indicator">}}</span>
+      <span class="nt">imagePullSecrets</span><span class="p">:</span>
+        <span class="p p-Indicator">{{</span><span class="nv">- toYaml . | nindent 8</span> <span class="p p-Indicator">}}</span>
+      <span class="p p-Indicator">{{</span><span class="nv">- end</span> <span class="p p-Indicator">}}</span>
+      <span class="nt">containers</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="p p-Indicator">{{</span> <span class="nv">.Chart.Name</span> <span class="p p-Indicator">}}</span>
+          <span class="nt">image</span><span class="p">:</span> <span class="s">&quot;{{</span><span class="nv"> </span><span class="s">.Values.image.repository</span><span class="nv"> </span><span class="s">}}:{{</span><span class="nv"> </span><span class="s">.Values.image.tag</span><span class="nv"> </span><span class="s">|</span><span class="nv"> </span><span class="s">default</span><span class="nv"> </span><span class="s">.Chart.AppVersion</span><span class="nv"> </span><span class="s">}}&quot;</span>
+          <span class="nt">imagePullPolicy</span><span class="p">:</span> <span class="p p-Indicator">{{</span> <span class="nv">.Values.image.pullPolicy</span> <span class="p p-Indicator">}}</span>
+          <span class="nt">ports</span><span class="p">:</span>
+            <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">http</span>
+              <span class="nt">containerPort</span><span class="p">:</span> <span class="p p-Indicator">{{</span> <span class="nv">.Values.containerPort</span> <span class="p p-Indicator">}}</span>
+              <span class="nt">protocol</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">TCP</span>
+</pre></div>
+</div>
+<p>detailpage/templates/configmap.yaml</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{{</span><span class="nv">- if .Values.configOverrides</span> <span class="p p-Indicator">}}</span>
+<span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ConfigMap</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="p p-Indicator">{{</span> <span class="nv">.Values.appname</span> <span class="p p-Indicator">}}</span>
+  <span class="nt">namespace</span><span class="p">:</span> <span class="p p-Indicator">{{</span> <span class="nv">.Values.namespace</span> <span class="p p-Indicator">}}</span>
+<span class="nt">data</span><span class="p">:</span>
+<span class="p p-Indicator">{{</span><span class="nv">- range .Values.configOverrides</span> <span class="p p-Indicator">}}</span>
+  <span class="p p-Indicator">{{</span> <span class="nv">.</span> <span class="p p-Indicator">}}:</span> <span class="p p-Indicator">|</span>
+<span class="p p-Indicator">{{</span> <span class="nv">$.Files.Get (printf &quot;%s%s&quot; &quot;configs/&quot; .) | indent 4</span> <span class="p p-Indicator">}}</span>
+<span class="p p-Indicator">{{</span><span class="nv">- end</span> <span class="p p-Indicator">}}</span>
+<span class="p p-Indicator">{{</span><span class="nv">- end</span> <span class="p p-Indicator">}}</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="../LogCollection/Elasticsearch%20snapshot%28HDFS%29.html" class="btn btn-neutral float-left" title="Elasticsearch索引备份到HDFS" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; 版权所有 2019, Rayzh.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
