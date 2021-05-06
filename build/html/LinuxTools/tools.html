@@ -1,0 +1,395 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="zh-CN" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Linux常用网络+压测+监控等工具 &mdash; SAwiki v1.0 文档</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/translations.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="搜索" href="../search.html" />
+    <link rel="prev" title="Terraform" href="Terraform.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> SAwiki
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">LogCollection:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../LogCollection/Elastcisearch%20backupsrestore.html">Elastcisearch数据备份与恢复</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../LogCollection/Elasticsearch%20snapshot%28HDFS%29.html">Elasticsearch索引备份到HDFS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../LogCollection/ELK%20Stack%20Introduction.html">ELK Stack Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../LogCollection/Grafna%20LDAP.html">Grafna之LDAP认证接入配置说明</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../LogCollection/Kafka.html">Kafka配置与使用</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../LogCollection/Logstash%20Demo.html">Logstash Demo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../LogCollection/Logstash%20Demo.html#id1">实际业务日志解析案例</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Helm:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../Helm/Helm.html">Helm基础与使用</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Helm:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="iptables.html">iptables使用参考</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lsync.html">文件同步工具–lsync</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Terraform.html">Terraform</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Terraform.html#id1">一、 Terraform简介</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Terraform.html#id5">二、使用案例</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Terraform.html#id6">三、总结</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Linux常用网络+压测+监控等工具</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#id1">一、 简介</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id2">二、 网络相关</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id3">三、 压测/性能相关</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id4">四、故障分析与排查</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id5">五、结束语</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">SAwiki</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Linux常用网络+压测+监控等工具</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/LinuxTools/tools.md.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="linux">
+<h1>Linux常用网络+压测+监控等工具<a class="headerlink" href="#linux" title="永久链接至标题">¶</a></h1>
+<div class="section" id="id1">
+<h2>一、 简介<a class="headerlink" href="#id1" title="永久链接至标题">¶</a></h2>
+<p>Linux下有很多用于问题排查、性能调优的工具，涉及到网络、软硬件等方方面面。显然一篇文章是无法详尽工具类型和每个参数的，这里记录下平时较为常用的工具，后续如有新涉及再另做补充。</p>
+</div>
+<div class="section" id="id2">
+<h2>二、 网络相关<a class="headerlink" href="#id2" title="永久链接至标题">¶</a></h2>
+<blockquote>
+<div><p><strong>· tcpdump</strong></p>
+</div></blockquote>
+<p>非HTTP协议下的抓包工具，主要用于分析如TCP/UDP协议的网络分析。Windows下的抓包工具wireshark和tcpdump语法一样，tcpdump主要用于Linux服务器上。</p>
+<p>– 基本语法</p>
+<p>// 过滤主机</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>tcpdump -i eth1 host <span class="m">192</span>.168.1.1  
+tcpdump -i eth1 src host <span class="m">192</span>.168.1.1  
+tcpdump -i eth1 dst host <span class="m">192</span>.168.1.1  
+</pre></div>
+</div>
+<p>-i，指定数据包网卡；src/dst host，源IP/目的地址是192.168.1.1；host，来源或者目的地址</p>
+<p>// 过滤端口</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>tcpdump -i eth1 port <span class="m">8080</span>  
+tcpdump -i eth1 src port <span class="m">8080</span>  
+tcpdump -i eth1 dst port <span class="m">8080</span>  
+</pre></div>
+</div>
+<p>源端口（src）、目的端口（dst）是8080</p>
+<p>// 过滤协议类型</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>tcpdump -i eth1 tcp
+</pre></div>
+</div>
+<p>– 包数据分析</p>
+<p>保存抓包的数据为pcap格式，使用wireshark客户端进行分析</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>tcpdump -i eth1 dst port <span class="m">9999</span> -w dump.pcap  
+</pre></div>
+</div>
+<blockquote>
+<div><p><strong>· nslookup/dig</strong></p>
+</div></blockquote>
+<p>定位域名源站工具。ping命令可以解析域名IP但是不全，nslookup/dig可以查看DNS上域名解析的A记录、Cname等信息。相比较而言，我更新习惯使用dig。windows下dig需要额外安装软件包。</p>
+<p>// 查看DNS上指定域名解析结果</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>   dig simiki.org
+</pre></div>
+</div>
+<p>域名解析的结果可作为一个HTTP WEB网站的入口进行数据流链路梳理，静态网站走CDN一般解析出来的是cname。另外，也可以查看指定DNS服务器上的域名解析结果，用于在申请域名或者域名解析地址变动情况下的问题排查与确认。</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>   dig simiki.org @114.114.114.114
+</pre></div>
+</div>
+<blockquote>
+<div><p><strong>· netstat</strong></p>
+</div></blockquote>
+<p>查看当前系统中端口开放与连接的一些情况。主要用于查看TCP程序端口直接连接信息。</p>
+<p>// 常用参数</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>-t : 指明显示TCP端口 
+-u : 指明显示UDP端口 
+-l :  --listening ，display listening server sockets
+-p : 显示进程标识符和程序名称，每一个套接字/端口都属于一个程序。 
+-n : 不进行DNS轮询，显示IP
+-a ：--all ，display all sockets <span class="o">(</span>default: connected<span class="o">)</span>
+</pre></div>
+</div>
+<p>// 查看当前所有TCP端口</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>netstat -ntlp
+<span class="o">[</span>root@test-0002 ~<span class="o">]</span><span class="c1"># netstat -ntlp</span>
+Active Internet connections <span class="o">(</span>only servers<span class="o">)</span>
+Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name    
+tcp        <span class="m">0</span>      <span class="m">0</span> <span class="m">0</span>.0.0.0:22              <span class="m">0</span>.0.0.0:*               LISTEN      <span class="m">1146</span>/sshd          
+tcp        <span class="m">0</span>      <span class="m">0</span> <span class="m">127</span>.0.0.1:32000         <span class="m">0</span>.0.0.0:*               LISTEN      <span class="m">957</span>/java           
+tcp        <span class="m">0</span>      <span class="m">0</span> <span class="m">0</span>.0.0.0:10050           <span class="m">0</span>.0.0.0:*               LISTEN      <span class="m">24094</span>/zabbix_agentd 
+tcp6       <span class="m">0</span>      <span class="m">0</span> :::9778                :::*                    LISTEN      <span class="m">26805</span>/java          
+tcp6       <span class="m">0</span>      <span class="m">0</span> :::22                   :::*                    LISTEN      <span class="m">1146</span>/sshd  
+</pre></div>
+</div>
+<p>Recv-Q、Send-Q是数据包接受、发送的本地缓冲，如果是非0则出现堵包情况。</p>
+<p>// 查看所有连接，包括TIME_WAIT等其他状态，可作为网络排查与统计的参考</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>netstat -anlp<span class="p">|</span>grep :9778
+</pre></div>
+</div>
+<blockquote>
+<div><p>· route,iptables</p>
+</div></blockquote>
+<p>单独说明，此处忽略。</p>
+</div>
+<div class="section" id="id3">
+<h2>三、 压测/性能相关<a class="headerlink" href="#id3" title="永久链接至标题">¶</a></h2>
+<blockquote>
+<div><p>· iostat/vmstat（输入/输出统计、虚拟内存统计）</p>
+</div></blockquote>
+<ol>
+<li><p>iostat</p>
+<p>查看所有设备负载情况</p>
+</li>
+</ol>
+<p>主要关注两个cpu的属性：%iowait：CPU等待输入输出完成时间的百分比；%idle：CPU空闲时间百分比。</p>
+<p>%iowait的值过高，存在I/O瓶颈；%idle值高，表示CPU空闲；如果%idle值高但系统响应慢，说明CPU空闲，但是可能内存不足，考虑增加内存；%idle值持续较低，说明CPU占用高，需要调整CPU。</p>
+<p>// 每隔2秒刷新显示，且显示3次</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">iostat</span> <span class="mi">2</span>  <span class="mi">3</span>
+</pre></div>
+</div>
+<p>在做压力测试时，关注的下面这些参数，如tps、read、write等。</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>tps：该设备每秒的传输次数
+kB_read/s：每秒从设备（drive expressed）读取的数据量；
+kB_wrtn/s：每秒向设备（drive expressed）写入的数据量；
+kB_read：  读取的总数据量；
+kB_wrtn：写入的总数量数据量；
+</pre></div>
+</div>
+<p>这些参数可作为硬件评估，上线前的压测数据。</p>
+<ol class="simple">
+<li><p>vmstat</p></li>
+</ol>
+<p>主要关注procs和cpu这两块。</p>
+<p>procs：r 运行队列中进程数量，长期较大考虑增加CPU；b 等待IO的进程数量</p>
+<p>cpu：us(user time)，长期过高可能是程序比较占CPU资源，应检查原因</p>
+<p>wa：IO等待时间百分比 wa的值高时，说明IO等待比较严重
+​ id：空闲百分比</p>
+<blockquote>
+<div><p>ifstat/iftop（网络实时流量监控）</p>
+</div></blockquote>
+<p>ifstat只能简单给出网卡一些流量信息，这里主要记录下iftop。</p>
+<ol>
+<li><p>下载与安装（http://www.ex-parrot.com/~pdw/iftop/）</p>
+<p>// 添加EPEL，https://www.vpser.net/manage/centos-rhel-linux-third-party-source-epel.html</p>
+<p><code class="docutils literal notranslate"><span class="pre">yum</span> <span class="pre">-y</span> <span class="pre">install</span> <span class="pre">iftop</span></code></p>
+</li>
+<li><p>界面说明</p></li>
+</ol>
+<p>中间的&lt;= =&gt;这两个左右箭头，表示的是流量的方向。</p>
+<p>TX：发送流量
+​ RX：接收流量
+​ TOTAL：总流量
+​ Cumm：运行iftop到目前时间的总流量
+​ peak：流量峰值
+​ rates：分别表示过去 2s 10s 40s 的平均流量</p>
+<ol class="simple">
+<li><p>常用参数</p></li>
+</ol>
+<p>-F 显示特定网段的进出流量</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python iftop -F <span class="m">192</span>.168.1.5/24
+</pre></div>
+</div>
+<p>-i 设定监测的网卡</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python iftop -i eth0
+</pre></div>
+</div>
+<p>-n 使host信息默认直接都显示IP</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>iftop -n
+</pre></div>
+</div>
+<blockquote>
+<div><p>· dstat</p>
+</div></blockquote>
+<p>是以上几个命令的拓展，增加了监控项，很方便监控并用于基准测试和故障排查。</p>
+</div>
+<div class="section" id="id4">
+<h2>四、故障分析与排查<a class="headerlink" href="#id4" title="永久链接至标题">¶</a></h2>
+<p>这一块主要是一些Linux下调试诊断，分析程序及系统调用的一些工具。目前接触到的如，strace 、perf。这是针对二进制编译的程序，在未开启debug日志下的一些排查手段。针对性比较强，等有实际使用案例再补充。</p>
+</div>
+<div class="section" id="id5">
+<h2>五、结束语<a class="headerlink" href="#id5" title="永久链接至标题">¶</a></h2>
+<p>Linux下涉及的工具很多，除了上面提到的还有一些开源社区提供的工具。在网络、监控、性能分析上都有相关涉及。当然，在业务服务器非常多的时候，这些命令只能起一些辅助的作用，更多的监控项应由专业的监控工具，如Zabbix去收集，设置其报警阈值。</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="Terraform.html" class="btn btn-neutral float-left" title="Terraform" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; 版权所有 2019, Rayzh.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

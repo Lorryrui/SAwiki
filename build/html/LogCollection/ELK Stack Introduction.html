@@ -1,0 +1,489 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="zh-CN" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>ELK Stack Introduction &mdash; SAwiki v1.0 文档</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/translations.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="搜索" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> SAwiki
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">LogCollection:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Elasticsearch%20snapshot%28HDFS%29.html">Elasticsearch索引备份到HDFS</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Helm:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../Helm/Helm.html">Helm基础与使用</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">SAwiki</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>ELK Stack Introduction</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/LogCollection/ELK Stack Introduction.md.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="elk-stack-introduction">
+<h1>ELK Stack Introduction<a class="headerlink" href="#elk-stack-introduction" title="永久链接至标题">¶</a></h1>
+<div class="section" id="id1">
+<h2>一 简介<a class="headerlink" href="#id1" title="永久链接至标题">¶</a></h2>
+<p>Elastic Stack是开源(<a class="reference external" href="https://sa.iujs.cn/LogCollection/www.elastic.co">www.elastic.co</a>)的日志搜集解决方案，主要是解决分布式系统中日志集中管理。ELK是Elasticsearch、Logstash、Kibana的简称。目前Elastic Stack生态圈的组件很多，适用于各种不同的业务场景，如日志分析、指标分析、网站搜索、安全分析等。</p>
+<p>搭建基于ELK的日志平台，主要是通过搜集程序日志，了解业务运行状况从而制定相应的调整策略。</p>
+</div>
+<div class="section" id="elasticsearch">
+<h2>二 Elasticsearch集群搭建<a class="headerlink" href="#elasticsearch" title="永久链接至标题">¶</a></h2>
+<p>2.1 准备</p>
+<p>Elasticsearch集群节点数量保证是奇数个，这里以3个ES节点为例。服务器初始环境的配置包括：</p>
+<p>· JDK版本： 1.8</p>
+<p>· 操作系统文件打开数(/etc/security/limits.conf)：</p>
+<p>echo “ <em>soft nofile 65536” &gt;&gt; /etc/security/limits.conf
+​ echo “</em> hard nofile 65536” &gt;&gt; /etc/security/limits.conf
+​ · /etc/sysctl.conf</p>
+<p>fs.file-max = 6553560</p>
+<p>vm.max_map_count=262144</p>
+<p>· 服务器目录规划（目录权限属于elastic用户）</p>
+<p>/opt elasticsearch程序、日志所在路径</p>
+<p>/data 新挂载1T盘，做LVM。ES的数据存储路径</p>
+<p>· 端口开放</p>
+<p>9200为ES启动默认端口；9300为ES集群间通讯端口。开放2个端口。</p>
+<p>重启服务器。</p>
+<p>2.2 集群搭建（Elasticsearch 6.6.2）</p>
+<p>2.2.1 安装包下载</p>
+<p>https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.6.2.tar.gz</p>
+<p>程序启动只能以非root账号，这里使用elastic</p>
+<p>2.2.2 集群配置</p>
+<p>· 修改配置文件（/opt/elasticsearch-6.6.2/config/elasticsearch.yml）</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cluster.name: elk-cluster  
+node.name: es-0001  
+path.data: /data  
+path.logs: /opt/elasticsearch-6.6.2/logs
+network.host: <span class="m">0</span>.0.0.0  <span class="c1"># 集群配置 0.0.0.0  </span>
+http.port: <span class="m">9200</span>  <span class="c1"># ES服务端口  </span>
+discovery.zen.ping.unicast.hosts: <span class="o">[</span><span class="s2">&quot;192.168.1.2&quot;</span>, <span class="s2">&quot;192.168.1.3&quot;</span>, <span class="s2">&quot;192.168.1.4&quot;</span><span class="o">]</span> <span class="c1">#参与选主ES</span>
+discovery.zen.minimum_master_nodes: <span class="m">2</span> <span class="c1"># 参与选主实例数/2 + 1    </span>
+</pre></div>
+</div>
+<p>· 修改JVM内存大小（/opt/elasticsearch-6.6.2/config/jvm.options）</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># 默认1G，调整为50%服务器内存</span>
+-Xms4g
+-Xmx4g
+</pre></div>
+</div>
+<p>2.3 Elasticsearch集群验证</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>curl <span class="s1">&#39;192.168.1.2:9200/_cat/health?v&#39;</span>  <span class="c1"># 查看节点状态  </span>
+curl <span class="s1">&#39;192.168.1.2:9200/_cat/nodes?v&#39;</span>   <span class="c1"># 查看集群信息       </span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="kibana">
+<h2>三 Kibana配置与使用<a class="headerlink" href="#kibana" title="永久链接至标题">¶</a></h2>
+<p>3.1 准备</p>
+<p>· JDK版本 1.8</p>
+<p>· 文件打开数配置，参考2.1</p>
+<p>3.2 安装与配置（Kibana 6.6.2）</p>
+<p>3.2.1 安装包下载（yum源）</p>
+<p>https://www.elastic.co/guide/en/kibana/current/rpm.html</p>
+<p>3.2.2 配置连接Elasticsearch（/etc/kibana/kibana.yml）</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>server.port: <span class="m">5601</span>
+server.host: <span class="s2">&quot;0.0.0.0&quot;</span>
+elasticsearch.hosts: <span class="o">[</span><span class="s2">&quot;http://192.168.1.2:9200&quot;</span>,<span class="s2">&quot;http://192.168.1.3:9200&quot;</span>,<span class="s2">&quot;http://192.168.1.4:9200&quot;</span><span class="o">]</span>
+</pre></div>
+</div>
+<p>3.2.3 Kibana服务管理</p>
+<p>/bin/systemctl enable kibana.service
+​ /bin/systemctl start kibana.service</p>
+<p>3.3 Kibana的使用</p>
+</div>
+<div class="section" id="logstash">
+<h2>四 Logstash配置与使用<a class="headerlink" href="#logstash" title="永久链接至标题">¶</a></h2>
+<p>Logstash在ELK Stack中主要负责日志清洗，将源日志格式化输出到Elasticsearch中。Logstash的过滤插件很多，常见的如正则解析、json解析等。清洗之后的结果类似一对对k-v的键值对，在ES中可以方便的查询和做一些聚合的操作。官方插件地址：https://www.elastic.co/guide/en/logstash/6.6/filter-plugins.html</p>
+<p>4.1 安装与配置说明</p>
+<p>安装的方式有很多，对于CentOS 7以上的系统，推荐使用配置yum源的方式安装。低版本可以使用二进制包安装，使用nohup方式启动。</p>
+<p>4.1.1 安装</p>
+<p>· java8环境</p>
+<p>· 配置yum源（https://www.elastic.co/guide/en/logstash/current/installing-logstash.html）</p>
+<p>· yum install logstash</p>
+<p>4.1.2 配置（/etc/logstash/logstash.yml）</p>
+<p>Logstash配置文件中，涉及到数据处理的主要有三个部分：input -&gt; filter -&gt; output 。</p>
+<p>· input（https://www.elastic.co/guide/en/logstash/6.6/input-plugins.html）</p>
+<p>源数据输入部分。支持的数据源格式可以参考官方文档中这部分的插件说明，目前最常见的是接受Beats的数据。Beat是清理级的日志收集组件，带一些简单的过滤功能，如只匹配ERROR行等。Filebeat可以将数据实时发送到Logstash，资源占用较小，对应用服务器压力不大。</p>
+<p>· filter（https://www.elastic.co/guide/en/logstash/6.6/filter-plugins.html）</p>
+<p>对源数据进行格式化处理。根据不同的日志格式做解析，如正则（grok）、IP地址解析（geoip）等插件。过滤之后，整合成类似k-v的数据。</p>
+<p>· output（https://www.elastic.co/guide/en/logstash/6.6/output-plugins.html）</p>
+<p>存储过滤之后的数据。支持的插件也很多，常用的如Kafka、S3、Elasticsearch等。ELK方案中主要是输出到Elasticsearch中。</p>
+<p>4.1.3 启动</p>
+<p>作为系统服务启动或者nohup /usr/share/logstash/bin/logstash -f logstash.conf &gt;/dev/null 2&gt;&amp;1 &amp;</p>
+<p>4.2 Logstash使用demo – 配置Logstash解析类Apache格式日志</p>
+<p>4.2.1 编写解析规则，如/etc/logstash/apache.conf</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>input <span class="o">{</span>
+    <span class="c1"># Logstash读取的数据源，这里是kafka</span>
+    kafka <span class="o">{</span>
+        <span class="nv">bootstrap_servers</span> <span class="o">=</span>&gt; <span class="s2">&quot;kafka1:9092 kafka2:9092 kafka3:9092&quot;</span>
+        <span class="nv">group_id</span> <span class="o">=</span>&gt; <span class="s2">&quot;ELK001&quot;</span>
+        <span class="nv">topics</span> <span class="o">=</span>&gt; <span class="o">[</span><span class="s2">&quot;AI_hxapi_accesslog&quot;</span><span class="o">]</span>
+        <span class="nv">consumer_threads</span> <span class="o">=</span>&gt; <span class="m">3</span>
+        <span class="nv">auto_offset_reset</span> <span class="o">=</span>&gt; <span class="s2">&quot;earliest&quot;</span>
+        <span class="nv">enable_auto_commit</span> <span class="o">=</span>&gt; <span class="s2">&quot;true&quot;</span>
+        <span class="nv">codec</span> <span class="o">=</span>&gt; <span class="s2">&quot;json&quot;</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+filter <span class="o">{</span>
+    grok <span class="o">{</span>
+        <span class="c1"># apache标准日志解析规则</span>
+        <span class="nv">match</span> <span class="o">=</span>&gt; <span class="o">{</span> <span class="s2">&quot;message&quot;</span> <span class="o">=</span>&gt; <span class="s2">&quot;%{COMBINEDAPACHELOG}&quot;</span><span class="o">}</span>
+    <span class="o">}</span>
+    urldecode <span class="o">{</span>
+        <span class="c1"># 对url的中文解码</span>
+        <span class="nv">all_fields</span> <span class="o">=</span>&gt; <span class="nb">true</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+
+output <span class="o">{</span>
+        <span class="c1"># 输出到Elasticsearch</span>
+    elasticsearch <span class="o">{</span>
+                 <span class="nv">hosts</span> <span class="o">=</span>&gt; <span class="o">[</span><span class="s2">&quot;es1:9200&quot;</span>,<span class="s2">&quot;es2:9200&quot;</span>,<span class="s2">&quot;es3:9200&quot;</span><span class="o">]</span>
+                 <span class="nv">index</span> <span class="o">=</span>&gt; <span class="s2">&quot;hxapi_access_log-%{+yyyy.MM.dd}&quot;</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>4.2.2 调试自己的解析规则</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>input <span class="o">{</span>
+    <span class="c1"># 从控制台输入要解析的数据</span>
+        stdin <span class="o">{}</span>
+<span class="o">}</span>
+filter<span class="o">{</span>
+        grok <span class="o">{</span>
+                <span class="nv">match</span> <span class="o">=</span>&gt; <span class="o">{</span><span class="s2">&quot;message&quot;</span><span class="o">=</span>&gt; <span class="s2">&quot;^&lt;(?&lt;log_type&gt;[^&gt;]+)&gt;&lt;(?&lt;appid&gt;\-)&gt;&lt;(?&lt;timestamp&gt;[^&gt;]+)[^&gt;\n]*&gt;&lt;(?&lt;thread_id&gt;\d+)&gt;&lt;(?&lt;filename_line&gt;\w+\.\w+:\d+)&gt;\s+(?&lt;stockinfo&gt;.+)&quot;</span><span class="o">}</span>
+                <span class="o">}</span>
+<span class="o">}</span>
+
+output <span class="o">{</span>
+    <span class="c1"># 控制台输出解析结果</span>
+        stdout <span class="o">{}</span>
+        <span class="o">}</span>
+</pre></div>
+</div>
+<p>logstash -f /etc.logstash/test.conf；启动完成后，在控制台上输入要解析的日志内容即可。</p>
+</div>
+<div class="section" id="filebeat">
+<h2>五 Filebeat配置与使用<a class="headerlink" href="#filebeat" title="永久链接至标题">¶</a></h2>
+<p>5.1 使用说明</p>
+<p>Filebeat是轻量级的日志抽取工具。与Logstash相比，占用系统的资源比较少，适合全量日志或者简单过滤日志传输。新的架构里，可以用Filebeat抽取日志发送到Logstash，由Logstash进行日志清洗。这样做可以减轻业务程序所在服务器的负担，同时也保证清洗的完整性。</p>
+<p>5.2 安装与配置说明</p>
+<p>按照官网给的安装说明，配置yum源。配置参考：</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1">#=========================== Filebeat inputs =============================</span>
+
+filebeat.inputs:
+- type: log
+  <span class="c1"># Change to true to enable this input configuration.</span>
+  enabled: <span class="nb">true</span>
+  <span class="c1"># Paths that should be crawled and fetched. Glob based paths.</span>
+  paths:
+    - /opt/nginx/logs/app1_access.log
+  tags: <span class="o">[</span><span class="s2">&quot;app1&quot;</span><span class="o">]</span> 
+- type: log
+  <span class="c1"># Change to true to enable this input configuration.</span>
+  enabled: <span class="nb">true</span>
+  <span class="c1"># Paths that should be crawled and fetched. Glob based paths.</span>
+  paths:
+    - /opt/nginx/logs/app2_access.log
+  tags: <span class="o">[</span><span class="s2">&quot;app2&quot;</span><span class="o">]</span>
+<span class="c1">#-------------------------- Kafka output ------------------------------</span>
+output.kafka:
+  <span class="c1"># initial brokers for reading cluster metadata</span>
+  hosts: <span class="o">[</span><span class="s2">&quot;kafka1:9092&quot;</span>, <span class="s2">&quot;kafka2:9092&quot;</span>, <span class="s2">&quot;kafka3:9092&quot;</span><span class="o">]</span>
+
+  <span class="c1"># message topic selection + partitioning</span>
+  topic: mytopic
+
+  required_acks: <span class="m">1</span>
+  compression: gzip
+  max_message_bytes: <span class="m">1000000</span>
+  version: <span class="m">0</span>.10.0.0
+<span class="c1">#================================ Logging =====================================</span>
+<span class="c1"># 配置Filebeat程序本身日志保存时长，避免日志量增长导致磁盘空间不足</span>
+logging.level: info
+logging.to_files: <span class="nb">true</span>
+logging.files:
+  path: /var/log/filebeat
+  name: filebeat
+  keepfiles: <span class="m">7</span>  
+  permissions: <span class="m">0644</span>
+</pre></div>
+</div>
+<p>5.3 服务启动</p>
+<p>systemctl start/stop/restart filebeat</p>
+</div>
+<div class="section" id="elastic-stack">
+<h2>六 Elastic Stack 接入安全<a class="headerlink" href="#elastic-stack" title="永久链接至标题">¶</a></h2>
+<p>6.1 Nginx配置HTTP访问加密</p>
+<p>高版本Elasticsearch的X-pack插件官方已收费，目前ES集群未开启认证。Kibana由于会在公网使用，所以配置Nginx转发做简单密码认证。</p>
+<p>6.1.1 Kibana配置调整</p>
+<p>server.host: “0.0.0.0” 修改为 server.host: “localhost”</p>
+<p>6.1.2 生成登录的用户名/密码</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>sh -c <span class="s2">&quot;echo -n &#39;logcollection:&#39; &gt;&gt; /etc/nginx/.htpasswd&quot;</span>
+sh -c <span class="s2">&quot;openssl passwd -apr1 &gt;&gt; /etc/nginx/.htpasswd&quot;</span>
+</pre></div>
+</div>
+<p>6.1.3 配置Nginx反向代理</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># 主要配置</span>
+location / <span class="o">{</span>
+             auth_basic <span class="s2">&quot;Welcome! Please login.&quot;</span><span class="p">;</span>
+             auth_basic_user_file /etc/nginx/.htpasswd<span class="p">;</span>
+             proxy_pass http://localhost:5601<span class="p">;</span>
+        <span class="o">}</span>
+</pre></div>
+</div>
+<p>6.1.4 访问Kibana</p>
+<p>打开Nginx访问端口，输入账号密码登录</p>
+<p>6.2 nginx-auth-ldap模块开启LDAP认证（推荐）</p>
+<p>6.2.1 编译安装Nginx Lua环境</p>
+<blockquote>
+<div><p>https://github.com/openresty/lua-nginx-module#installation</p>
+</div></blockquote>
+<p>a. LuaJIT环境</p>
+<p>https://github.com/openresty/luajit2/releases</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>make <span class="o">&amp;&amp;</span> make install
+<span class="nb">export</span> <span class="nv">LUAJIT_LIB</span><span class="o">=</span>/usr/local/lib
+<span class="nb">export</span> <span class="nv">LUAJIT_INC</span><span class="o">=</span>/usr/local/include/luajit-2.1
+</pre></div>
+</div>
+<p>b. ngx_devel_kit (NDK)、ngx_lua 模块</p>
+<blockquote>
+<div><p>https://github.com/simplresty/ngx_devel_kit/tags</p>
+<p>https://github.com/openresty/lua-nginx-module/tags</p>
+</div></blockquote>
+<p>c. 编译安装</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>yum install -y openldap-devel openssl openssl-devel gcc pcre pcre-devel gd gd-devel GeoIP GeoIP-devel provides geoip-devel
+./configure --prefix<span class="o">=</span>/opt/nginx --with-http_stub_status_module --with-http_ssl_module --with-file-aio --with-http_realip_module --with-ld-opt<span class="o">=</span><span class="s2">&quot;-Wl,-rpath,/usr/local/lib&quot;</span> --add-module<span class="o">=</span>/usr/local/nginx_module/ngx_devel_kit-0.3.0 --add-module<span class="o">=</span>/usr/local/nginx_module/lua-nginx-module-0.10.14
+make <span class="o">&amp;&amp;</span> make install
+</pre></div>
+</div>
+<p>6.2.2 Nginx配置参考</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>worker_processes  <span class="m">4</span><span class="p">;</span>
+
+events <span class="o">{</span>
+    worker_connections  <span class="m">1024</span><span class="p">;</span>
+<span class="o">}</span>
+
+
+http <span class="o">{</span>
+    include       mime.types<span class="p">;</span>
+    default_type  application/octet-stream<span class="p">;</span>
+
+
+    sendfile        on<span class="p">;</span>
+
+    keepalive_timeout  <span class="m">65</span><span class="p">;</span>
+
+<span class="c1"># LDAP config</span>
+    ldap_server mycorp <span class="o">{</span>
+        url ldap://ldapserver:389/DC<span class="o">=</span>mycorp,DC<span class="o">=</span>com,DC<span class="o">=</span>cn?sAMAccountName?sub?<span class="o">(</span><span class="nv">objectClass</span><span class="o">=</span>person<span class="o">)</span><span class="p">;</span>
+        binddn <span class="s2">&quot;my@mycorp.com.cn&quot;</span><span class="p">;</span>
+        binddn_passwd mypasswd<span class="p">;</span>
+        group_attribute uniquemember<span class="p">;</span>
+        group_attribute_is_dn on<span class="p">;</span>
+        require valid_user<span class="p">;</span>
+      <span class="o">}</span>
+
+    server <span class="o">{</span>
+        listen       <span class="m">15601</span><span class="p">;</span>
+        server_name  mydomain<span class="p">;</span>
+        auth_ldap <span class="s2">&quot;Welcome! Please login with  LDAP account&quot;</span><span class="p">;</span>
+        auth_ldap_servers mycorp<span class="p">;</span>
+
+        location / <span class="o">{</span>
+            proxy_pass http://localhost:5601<span class="p">;</span>
+        <span class="o">}</span>
+        error_page   <span class="m">500</span> <span class="m">502</span> <span class="m">503</span> <span class="m">504</span>  /50x.html<span class="p">;</span>
+        <span class="nv">location</span> <span class="o">=</span> /50x.html <span class="o">{</span>
+            root   html<span class="p">;</span>
+        <span class="o">}</span>
+
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; 版权所有 2019, Rayzh.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

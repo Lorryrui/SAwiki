@@ -1,2 +1,0 @@
-# SAwiki
-SA Reference
